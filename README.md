@@ -62,3 +62,7 @@ The recommendation endpoint trains its decision from user activity rows and feed
 - Database: Supabase Postgres for production, SQLite for local development
 
 For Postgres production deployment, replace the SQLite connection in `backend/app/database.py` with a pooled Postgres connection and keep the same route/service contracts.
+
+## License
+
+MIT License. See LICENSE.
