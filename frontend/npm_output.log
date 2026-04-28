@@ -1,0 +1,10 @@
+
+> carbon-guardian-ai-frontend@1.0.0 dev
+> vite --host 127.0.0.1 --port 5173
+
+11:59:42 AM [vite] (client) Re-optimizing dependencies because lockfile has changed
+
+  VITE v6.4.2  ready in 267 ms
+
+  ➜  Local:   http://127.0.0.1:5173/
+12:06:02 PM [vite] (client) hmr update /src/pages/Dashboard.jsx, /src/styles.css
