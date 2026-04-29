@@ -1,0 +1,12 @@
+{
+  "weights": {
+    "emissions": 0.5,
+    "time": 0.3,
+    "cost": 0.1,
+    "user_history": 0.1
+  },
+  "penalties": {
+    "distance_exceeds_comfort": -50,
+    "bad_weather_unshielded": -30
+  }
+}

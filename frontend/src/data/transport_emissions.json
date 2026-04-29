@@ -1,0 +1,67 @@
+{
+  "modes": [
+    {
+      "id": "walking",
+      "name": "Walking",
+      "emissions_per_km": 0,
+      "base_speed_kmh": 5,
+      "cost_per_km": 0,
+      "weather_penalty": true,
+      "icon": "Footprints"
+    },
+    {
+      "id": "cycling",
+      "name": "Cycling",
+      "emissions_per_km": 0,
+      "base_speed_kmh": 15,
+      "cost_per_km": 0,
+      "weather_penalty": true,
+      "icon": "Bike"
+    },
+    {
+      "id": "metro",
+      "name": "Metro/Train",
+      "emissions_per_km": 14,
+      "base_speed_kmh": 40,
+      "cost_per_km": 0.5,
+      "weather_penalty": false,
+      "icon": "Train"
+    },
+    {
+      "id": "bus",
+      "name": "Electric Bus",
+      "emissions_per_km": 25,
+      "base_speed_kmh": 25,
+      "cost_per_km": 0.3,
+      "weather_penalty": false,
+      "icon": "Bus"
+    },
+    {
+      "id": "carpool",
+      "name": "Carpool",
+      "emissions_per_km": 60,
+      "base_speed_kmh": 35,
+      "cost_per_km": 0.8,
+      "weather_penalty": false,
+      "icon": "Users"
+    },
+    {
+      "id": "cab",
+      "name": "Cab/Taxi",
+      "emissions_per_km": 120,
+      "base_speed_kmh": 35,
+      "cost_per_km": 1.5,
+      "weather_penalty": false,
+      "icon": "Car"
+    },
+    {
+      "id": "personal_vehicle",
+      "name": "Personal Car",
+      "emissions_per_km": 192,
+      "base_speed_kmh": 40,
+      "cost_per_km": 0.2,
+      "weather_penalty": false,
+      "icon": "CarFront"
+    }
+  ]
+}

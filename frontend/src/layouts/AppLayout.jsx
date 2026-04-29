@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Bell,
   Bot,
@@ -14,16 +14,19 @@ import {
   Trophy,
   Users,
   ChevronDown,
+  LogOut,
+  ShieldAlert
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Leaf, label: "My Footprint", path: "/footprint" },
-  { icon: Bot, label: "AI Recommender", path: "/recommender" },
+  { icon: Leaf, label: "My Profile", path: "/profile" },
+  { icon: Bot, label: "Plan Route", path: "/recommender" },
   { icon: CloudSun, label: "Live Impact", path: "/live-impact" },
-  { icon: Trophy, label: "Green Points", path: "/rewards" },
+  { icon: Trophy, label: "Rewards", path: "/rewards" },
   { icon: Users, label: "Community", path: "/community", badge: "New" },
   { icon: Store, label: "Marketplace", path: "/marketplace" },
   { icon: CheckSquare, label: "Simulation Lab", path: "/simulation" },
@@ -32,10 +35,18 @@ const navLinks = [
 export default function AppLayout() {
   const [profile, setProfile] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     api.profile().then(setProfile);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-900 font-sans">
@@ -70,6 +81,21 @@ export default function AppLayout() {
               )}
             </NavLink>
           ))}
+          {isAdmin && (
+             <NavLink
+               to="/admin"
+               className={({ isActive }) =>
+                 `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 ${
+                   isActive
+                     ? "bg-amber-600 text-white shadow-inner font-medium"
+                     : "text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white"
+                 }`
+               }
+             >
+               <ShieldAlert size={20} className={location.pathname.startsWith('/admin') ? "text-white" : "text-amber-400"} />
+               <span className={location.pathname.startsWith('/admin') ? "text-white" : "text-amber-400 font-medium"}>Admin Panel</span>
+             </NavLink>
+          )}
         </nav>
 
         <div className="p-4 mx-4 mb-6 bg-emerald-800/40 rounded-xl border border-emerald-700/50 backdrop-blur-sm">
@@ -117,17 +143,37 @@ export default function AppLayout() {
               </div>
             )}
 
-            {profile ? (
-              <button className="flex items-center gap-3 hover:bg-slate-50 p-1.5 rounded-xl transition-colors">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 text-white flex items-center justify-center font-bold shadow-sm">
-                  {profile.name[0]}
-                </div>
-                <div className="text-left hidden md:block">
-                  <div className="text-sm font-semibold text-slate-700 leading-tight">Hi, {profile.name}</div>
-                  <div className="text-xs text-slate-500">Level {profile.level} · {profile.persona}</div>
-                </div>
-                <ChevronDown size={16} className="text-slate-400 hidden md:block" />
-              </button>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="flex items-center gap-3 hover:bg-slate-50 p-1.5 rounded-xl transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 text-white flex items-center justify-center font-bold shadow-sm overflow-hidden">
+                    {user.avatar ? <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" /> : user.name[0]}
+                  </div>
+                  <div className="text-left hidden md:block">
+                    <div className="text-sm font-semibold text-slate-700 leading-tight">Hi, {user.name}</div>
+                    <div className="text-xs text-slate-500 capitalize">{user.role}</div>
+                  </div>
+                  <ChevronDown size={16} className="text-slate-400 hidden md:block" />
+                </button>
+
+                {showDropdown && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                    <div className="py-1" role="menu" aria-orientation="vertical">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        role="menuitem"
+                      >
+                        <LogOut className="mr-3 h-4 w-4 text-gray-400" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse" />
             )}

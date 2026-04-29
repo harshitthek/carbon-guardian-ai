@@ -1,0 +1,22 @@
+{
+  "user_preferences": {
+    "max_walking_distance_km": 2.5,
+    "max_cycling_distance_km": 10,
+    "prioritize_time": 0.4,
+    "prioritize_emissions": 0.5,
+    "prioritize_cost": 0.1,
+    "frequent_modes": ["metro", "walking"]
+  },
+  "history": [
+    {
+      "distance_km": 3.2,
+      "chosen_mode": "metro",
+      "emissions_saved_vs_car": 569.6
+    },
+    {
+      "distance_km": 1.5,
+      "chosen_mode": "walking",
+      "emissions_saved_vs_car": 288.0
+    }
+  ]
+}
