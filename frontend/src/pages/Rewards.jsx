@@ -1,121 +1,155 @@
 import React from "react";
 import { useOutletContext } from "react-router-dom";
-import { Trophy, Gift, Star, Shield, Zap } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { motion } from "framer-motion";
+import { Trophy, Gift, Star, Shield, Zap, TrendingUp, ChevronRight, History } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Rewards() {
   const { profile } = useOutletContext();
 
-  if (!profile) return null;
+  if (!profile) return <div className="h-64 skeleton rounded-3xl" />;
 
   const badges = [
-    { icon: Shield, name: "Eco Starter", desc: "First action taken", earned: true },
-    { icon: Zap, name: "Energy Saver", desc: "Reduced electricity by 10%", earned: true },
-    { icon: Star, name: "Week Streak", desc: "7 days of green choices", earned: false },
+    { icon: Shield, name: "Eco Starter", desc: "First action taken", earned: true, color: "text-[var(--eco-electric)]" },
+    { icon: Zap, name: "Energy Saver", desc: "Reduced electricity by 10%", earned: true, color: "text-[var(--eco-sun)]" },
+    { icon: Star, name: "Week Streak", desc: "7 days of green choices", earned: false, color: "text-[var(--text-muted)]" },
   ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-10">
+    <div className="space-y-12 pb-20">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
-          <Trophy className="text-emerald-500" /> Green Points & Rewards
-        </h1>
-        <p className="text-slate-500 mt-2">Track your progress and redeem points for real-world impact.</p>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-2 text-[var(--eco-neon)] mono text-[10px] uppercase tracking-[0.3em] mb-2"
+        >
+          <Trophy size={14} />
+          Guardian Achievements
+        </motion.div>
+        <h1 className="text-4xl md:text-5xl font-bold">Rewards <span className="text-[var(--text-muted)]">& Points</span></h1>
+        <p className="text-[var(--text-secondary)] mt-4">Convert your climate contributions into digital and real-world assets.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Points Summary Card */}
-        <Card className="bg-emerald-600 text-white shadow-lg overflow-hidden relative col-span-1 md:col-span-2">
-          <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4"></div>
-          <CardContent className="p-8 relative z-10 flex flex-col justify-center h-full">
-            <p className="text-emerald-100 font-medium mb-2 uppercase tracking-wide text-sm">Total Balance</p>
-            <h2 className="text-6xl font-bold mb-4 flex items-center gap-4">
-              {profile.green_points.toLocaleString()} <span className="text-2xl font-normal text-emerald-200">GP</span>
-            </h2>
-            <div className="flex gap-4 mt-4">
-              <button className="bg-white text-emerald-700 px-6 py-2.5 rounded-lg font-bold shadow-sm hover:bg-emerald-50 transition-colors">
-                Redeem Now
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Balance Card */}
+        <div className="lg:col-span-2 bento-card bg-gradient-to-br from-[var(--eco-surface)] to-[var(--eco-black)] border-[var(--eco-neon)]/20 p-10 flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute right-[-5%] top-[-10%] opacity-10 group-hover:scale-110 transition-transform duration-2000">
+             <Trophy size={400} />
+          </div>
+          
+          <div className="relative z-10">
+            <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--eco-neon)] mb-6 block">Current Uplink Balance</span>
+            <div className="flex items-baseline gap-4 mb-10">
+              <h2 className="text-7xl md:text-8xl font-bold text-white mono leading-none tracking-tighter">
+                {profile.green_points.toLocaleString()}
+              </h2>
+              <span className="text-2xl font-bold text-[var(--eco-neon)] mono uppercase">GP</span>
+            </div>
+            
+            <div className="flex flex-wrap gap-4">
+              <button className="btn-primary flex items-center gap-2">
+                Redeem Assets <ChevronRight size={18} />
               </button>
-              <button className="bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium border border-emerald-500 hover:bg-emerald-800 transition-colors">
-                View History
+              <button className="px-8 py-4 rounded-xl border border-[var(--glass-border)] text-white font-bold hover:bg-white/5 transition-all flex items-center gap-2">
+                <History size={18} /> Audit History
               </button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Next Level Info */}
-        <Card className="shadow-sm border-slate-200">
-          <CardContent className="p-6 flex flex-col items-center text-center justify-center h-full">
-            <div className="w-24 h-24 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mb-4 shadow-inner">
+        {/* Level Progression */}
+        <div className="glass-card p-8 border-[var(--glass-border)] flex flex-col items-center justify-center text-center relative overflow-hidden">
+          <div className="aurora-blob w-32 h-32 blur-3xl opacity-20" />
+          <div className="relative z-10 w-full">
+            <div className="w-24 h-24 bg-[var(--eco-dark)] rounded-[2.5rem] flex items-center justify-center text-4xl mb-6 mx-auto border border-[var(--glass-border)] shadow-[0_0_30px_rgba(255,189,46,0.1)]">
               👑
             </div>
-            <h3 className="font-bold text-lg text-slate-800">Level {profile.level}</h3>
-            <p className="text-slate-500 text-sm mb-4">{profile.persona}</p>
-
-            <div className="w-full text-left space-y-1">
-              <div className="flex justify-between text-xs text-slate-500 font-medium">
-                <span>{profile.green_points} GP</span>
-                <span>3000 GP</span>
+            <h3 className="text-2xl font-bold mb-1">Rank: {profile.persona}</h3>
+            <p className="text-[var(--eco-neon)] mono text-xs uppercase tracking-widest mb-8">Level {profile.level}</p>
+            
+            <div className="w-full space-y-3">
+              <div className="flex justify-between text-[10px] mono font-bold uppercase tracking-widest text-[var(--text-muted)]">
+                <span>Progress</span>
+                <span>{profile.green_points} / 3000 GP</span>
               </div>
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div className="w-full bg-[var(--eco-darkest)] h-2 rounded-full overflow-hidden border border-[var(--glass-border)]">
                 <motion.div
-                  className="bg-amber-400 h-full rounded-full"
-                  initial={{width: 0}}
-                  animate={{width: `${(profile.green_points / 3000) * 100}%`}}
-                  transition={{duration: 1}}
+                  className="bg-gradient-to-r from-[var(--eco-neon)] to-[var(--eco-electric)] h-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(profile.green_points / 3000) * 100}%` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
                 />
               </div>
-              <p className="text-xs text-slate-400 text-center mt-2">Only 550 points to Level 8!</p>
+              <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest mono mt-4">
+                {3000 - profile.green_points} GP to Next Protocol Level
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        {/* Recent Activity List */}
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Earnings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {profile.recent_rewards.map((reward, i) => (
-                <div key={reward.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <div>
-                    <p className="font-semibold text-slate-700">{reward.source}</p>
-                    <p className="text-xs text-slate-400">{reward.date}</p>
-                  </div>
-                  <div className="font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-sm">
-                    +{reward.points} GP
-                  </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+        {/* Earnings List */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Neural Uplink Feed</h3>
+            <TrendingUp size={14} className="text-[var(--eco-neon)]" />
+          </div>
+          <div className="space-y-3">
+            {profile.recent_rewards.map((reward, i) => (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                key={reward.id} 
+                className="flex items-center justify-between p-5 glass-card border-[var(--glass-border)] hover:border-[var(--glass-border-hover)] transition-all group"
+              >
+                <div>
+                  <p className="font-bold text-[var(--text-primary)] group-hover:text-[var(--eco-neon)] transition-colors">{reward.source}</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest mt-1">{reward.date}</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="font-bold text-[var(--eco-neon)] mono bg-[var(--eco-neon)]/5 px-4 py-2 rounded-xl border border-[var(--eco-neon)]/10 group-hover:scale-105 transition-transform">
+                  +{reward.points} GP
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
 
-        {/* Badges */}
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-lg">Your Badges</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {badges.map((badge, i) => (
-                <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border ${badge.earned ? 'bg-white border-emerald-200 shadow-sm' : 'bg-slate-50 border-slate-200 opacity-60 grayscale'}`}>
-                  <div className={`p-2.5 rounded-full ${badge.earned ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-400'}`}>
-                    <badge.icon size={20} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-700 text-sm">{badge.name}</p>
-                    <p className="text-xs text-slate-500">{badge.desc}</p>
-                  </div>
+        {/* Badges Redesign */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Guardian Signets</h3>
+            <Star size={14} className="text-[var(--eco-sun)]" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {badges.map((badge, i) => (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.1 + 0.3 }}
+                key={i} 
+                className={`p-6 rounded-3xl border transition-all flex flex-col items-center text-center group ${
+                  badge.earned 
+                  ? 'glass-card border-[var(--glass-border)] hover:border-[var(--eco-neon)]/30' 
+                  : 'bg-[var(--eco-darkest)] border-[var(--glass-border)] opacity-40 grayscale'
+                }`}
+              >
+                <div className={`p-4 rounded-2xl bg-[var(--eco-dark)] mb-4 border border-[var(--glass-border)] group-hover:scale-110 transition-transform ${badge.color}`}>
+                  <badge.icon size={28} />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <h4 className="font-bold text-sm mb-1">{badge.name}</h4>
+                <p className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest leading-relaxed">
+                  {badge.earned ? badge.desc : "Locked"}
+                </p>
+                {badge.earned && (
+                  <div className="mt-4 px-2 py-1 bg-[var(--eco-neon)]/10 rounded-full text-[8px] font-bold text-[var(--eco-neon)] uppercase tracking-widest">
+                    Verified
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

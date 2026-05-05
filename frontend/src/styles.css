@@ -1,57 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&family=Cabinet+Grotesk:wght@300;400;500;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+:root {
+  /* Primary Environmental Palette */
+  --eco-black: #0A0F0A;           /* Deep forest night */
+  --eco-darkest: #0D1A0F;         /* Soil dark */
+  --eco-dark: #122B14;            /* Moss dark */
+  --eco-surface: #1A3B1D;         /* Forest floor */
+  --eco-surface-2: #1F4622;       /* Canopy shadow */
+  
+  /* Vibrant Greens */
+  --eco-neon: #39FF14;            /* Neon chlorophyll */
+  --eco-electric: #00FF88;        /* Electric emerald */
+  --eco-acid: #AAFF00;            /* Acid lime */
+  --eco-mint: #00E5CC;            /* Arctic melt */
+  --eco-sage: #7EC8A0;            /* Morning fog sage */
+  
+  /* Accent Colors */
+  --eco-aurora-1: #00FFCC;        /* Aurora teal */
+  --eco-aurora-2: #0AE8F0;        /* Bioluminescent blue */
+  --eco-sun: #FFD700;             /* Solar gold */
+  --eco-earth: #8B6F47;           /* Soil brown */
+  --eco-sky: #87CEEB;             /* Clear sky */
+  --eco-danger: #FF4444;          /* CO2 red warning */
+  --eco-warn: #FF8C00;            /* Pollution amber */
+  
+  /* Text */
+  --text-primary: #E8F5E8;        /* Pale leaf white */
+  --text-secondary: #A8C8A8;      /* Muted forest */
+  --text-muted: #5A7A5A;          /* Shadow moss */
+  --text-accent: var(--eco-electric);
+  
+  /* Glass & Blur */
+  --glass-bg: rgba(26, 59, 29, 0.4);
+  --glass-border: rgba(57, 255, 20, 0.15);
+  --glass-border-hover: rgba(57, 255, 20, 0.35);
+  --glass-blur: blur(20px);
+  --glass-shadow: 0 8px 32px rgba(0, 255, 136, 0.1);
+  
+  /* Gradients */
+  --gradient-hero: radial-gradient(ellipse at 20% 50%, #122B14 0%, #0A0F0A 50%, #0D1A1F 100%);
+  --gradient-glow: radial-gradient(circle, rgba(57,255,20,0.15) 0%, transparent 70%);
+  --gradient-aurora: linear-gradient(135deg, #00FFCC22 0%, #39FF1422 50%, #0AE8F022 100%);
+  --gradient-card: linear-gradient(135deg, rgba(26,59,29,0.6) 0%, rgba(10,15,10,0.8) 100%);
+  
+  /* Spacing & Radius */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 40px;
+  --radius-pill: 999px;
+  
+  /* Typography Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
+  --text-4xl: 2.5rem;
+  --text-5xl: 3.5rem;
+  --text-6xl: 5rem;
+  --text-7xl: 7rem;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 142.1 76.2% 36.3%;
-
-    --radius: 0.5rem;
-  }
+  /* Shadcn Overrides for compatibility if needed */
+  --background: 142.1 76.2% 3.3%;
+  --foreground: 142.1 76.2% 96.3%;
+  --primary: 142.1 100% 53.9%;
+  --primary-foreground: 142.1 76.2% 3.3%;
+  --card: 142.1 76.2% 5.3%;
+  --card-foreground: 142.1 76.2% 96.3%;
+  --border: 142.1 76.2% 12.3%;
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--eco-black);
+    color: var(--text-primary);
+    font-family: 'Cabinet Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .hero-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+  }
+
+  .metric, .data-label, code, .stat-number, .mono {
+    font-family: 'Space Mono', monospace;
   }
 }
 
-/* Hide scrollbar for Chrome, Safari and Opera */
+@layer components {
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .aurora-blob {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(57,255,20,0.12) 0%, rgba(0,229,204,0.06) 40%, transparent 70%);
+    border-radius: 50%;
+    filter: blur(60px);
+    animation: auroraFloat 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    gap: 16px;
+  }
+
+  .bento-card {
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .bento-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(57, 255, 20, 0.4);
+    box-shadow: 0 20px 60px rgba(57, 255, 20, 0.1), 0 0 0 1px rgba(57, 255, 20, 0.1);
+  }
+
+  .ai-terminal {
+    background: #050a05;
+    border: 1px solid rgba(57,255,20,0.2);
+    border-radius: var(--radius-lg);
+    font-family: 'Space Mono', monospace;
+    color: var(--eco-electric);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: var(--eco-electric);
+    color: var(--eco-black);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    border: none;
+    padding: 14px 32px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .btn-primary:hover::after { left: 100%; }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 229, 204, 0.4);
+  }
+
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .animate-on-scroll.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--eco-surface) 25%, var(--eco-surface-2) 50%, var(--eco-surface) 75%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+  }
+}
+
+@keyframes auroraFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.05); }
+  66% { transform: translate(-20px, 20px) scale(0.97); }
+}
+
+@keyframes skeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+.cursor-blink {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: var(--eco-neon);
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+}
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Hide scrollbar for IE, Edge and Firefox */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

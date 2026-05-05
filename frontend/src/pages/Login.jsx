@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf } from 'lucide-react';
+import { Leaf, Mail, User, ArrowRight, Globe } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/app/dashboard';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,124 +30,101 @@ export default function Login() {
       await login(email, name);
       navigate(from, { replace: true });
     } catch (err) {
-      setError('Failed to login. Please try again.');
+      setError('System failure: Authentication protocol offline.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
-    // Simulated Google Login
-    // For now, we'll auto-fill and submit for standard user
-    // To test admin, the user will manually enter admin@carbon.ai
     setEmail('user@gmail.com');
-    setName('Demo User');
+    setName('Eco Guardian');
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-xl border border-emerald-100">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-            <Leaf className="h-6 w-6 text-emerald-600" />
-          </div>
-          <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-gray-900">
-            Carbon Guardian AI
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to access your dashboard
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4 text-sm text-red-700 border border-red-200">
-              {error}
+    <div className="min-h-screen bg-[var(--eco-black)] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="aurora-blob top-[-20%] left-[-10%] opacity-40" />
+      <div className="aurora-blob bottom-[-20%] right-[-10%] opacity-20" />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md z-10"
+      >
+        <div className="glass-card p-10 border-[var(--glass-border)] bg-[var(--glass-bg)] shadow-[0_0_50px_rgba(0,255,136,0.05)]">
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-[var(--eco-dark)] rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[var(--glass-border)] shadow-[0_0_15px_rgba(57,255,20,0.2)]">
+              <Leaf className="text-[var(--eco-neon)]" size={32} />
             </div>
-          )}
-
-          <div className="space-y-4 rounded-md shadow-sm">
-            <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="relative block w-full appearance-none rounded-lg border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 sm:text-sm"
-                placeholder="Email address (use admin@carbon.ai for Admin)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="name" className="sr-only">Name (optional)</label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                className="relative block w-full appearance-none rounded-lg border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-emerald-500 focus:outline-none focus:ring-emerald-500 sm:text-sm"
-                placeholder="Your Name (optional)"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
+            <h2 className="text-3xl font-bold mb-2">Initialize <span className="text-[var(--eco-neon)]">Guardian</span></h2>
+            <p className="text-[var(--text-muted)] text-sm uppercase tracking-widest mono font-bold">Secure Access Uplink</p>
           </div>
 
-          <div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs mono">
+                [ERR] {error}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--eco-neon)] transition-colors" size={18} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Guardian Email"
+                  className="w-full bg-[var(--eco-darkest)] border border-[var(--glass-border)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[var(--eco-neon)] transition-all mono text-sm text-[var(--text-primary)]"
+                  required
+                />
+              </div>
+              <div className="relative group">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--eco-neon)] transition-colors" size={18} />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Guardian Name (Optional)"
+                  className="w-full bg-[var(--eco-darkest)] border border-[var(--glass-border)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[var(--eco-neon)] transition-all mono text-sm text-[var(--text-primary)]"
+                />
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-lg border border-transparent bg-emerald-600 py-3 px-4 text-sm font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
+              className="btn-primary w-full group"
             >
               {isLoading ? (
-                <span className="flex items-center">
-                   <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                   Signing in...
-                </span>
-              ) : 'Sign In'}
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--eco-black)] border-t-transparent" />
+              ) : (
+                <>Establish Link <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
+              )}
             </button>
-          </div>
-        </form>
+          </form>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+          <div className="mt-10">
+            <div className="relative flex items-center justify-center mb-8">
+              <div className="absolute w-full h-[1px] bg-[var(--glass-border)]" />
+              <span className="relative px-4 bg-[#0d1a0f] text-[10px] mono text-[var(--text-muted)] uppercase tracking-widest font-bold">Alternative Uplinks</span>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">Or continue with</span>
-            </div>
-          </div>
 
-          <div className="mt-6">
             <button
               onClick={handleGoogleLogin}
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors"
+              className="w-full flex items-center justify-center gap-3 py-4 rounded-xl border border-[var(--glass-border)] hover:bg-white/5 transition-all text-sm font-bold text-[var(--text-secondary)]"
             >
-              <svg className="h-5 w-5" aria-hidden="true" viewBox="0 0 24 24">
-                <path
-                  d="M12.0003 4.75C13.7703 4.75 15.3553 5.36002 16.6053 6.54998L20.0303 3.125C17.9502 1.19 15.2353 0 12.0003 0C7.31028 0 3.25527 2.69 1.28027 6.60998L5.27028 9.70498C6.21525 6.86002 8.87028 4.75 12.0003 4.75Z"
-                  fill="#EA4335"
-                />
-                <path
-                  d="M23.49 12.275C23.49 11.49 23.415 10.73 23.3 10H12V14.51H18.47C18.18 15.99 17.34 17.25 16.08 18.1L19.945 21.1C22.2 19.01 23.49 15.92 23.49 12.275Z"
-                  fill="#4285F4"
-                />
-                <path
-                  d="M5.26498 14.2949C5.02498 13.5699 4.88501 12.7999 4.88501 11.9999C4.88501 11.1999 5.01998 10.4299 5.26498 9.7049L1.275 6.60986C0.46 8.22986 0 10.0599 0 11.9999C0 13.9399 0.46 15.7699 1.28 17.3899L5.26498 14.2949Z"
-                  fill="#FBBC05"
-                />
-                <path
-                  d="M12.0004 24.0001C15.2404 24.0001 17.9654 22.935 19.9454 21.095L16.0804 18.095C15.0054 18.82 13.6204 19.245 12.0004 19.245C8.8704 19.245 6.21537 17.135 5.26538 14.29L1.27539 17.385C3.25539 21.31 7.3104 24.0001 12.0004 24.0001Z"
-                  fill="#34A853"
-                />
-              </svg>
-              Sign in with Google (Mock)
+              <Globe size={18} className="text-[var(--eco-mint)]" />
+              Authenticate with Google (Mock)
             </button>
           </div>
         </div>
-      </div>
+
+        <p className="mt-8 text-center text-[10px] text-[var(--text-muted)] mono uppercase tracking-[0.2em]">
+          Uplink Security: Grade A // Verified by Eco-Core
+        </p>
+      </motion.div>
     </div>
   );
 }

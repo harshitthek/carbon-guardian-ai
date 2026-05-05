@@ -1,252 +1,187 @@
-import React, { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
-import { Bot, Clock, CloudRain, ShieldCheck, Zap, ChevronRight, Activity, MapPin, Footprints, Bike, Train, Bus, Users, Car, CarFront } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
-import { LocationInput } from "../components/recommendation/LocationInput";
-import { locationService } from "../services/locationService";
-import { recommendationEngine } from "../services/recommendationEngine";
+import React, { useState, useEffect, useRef } from "react";
+import { Bot, MapPin, Navigation, Send, Loader2, Sparkles, AlertCircle, History, ChevronRight, X, Terminal } from "lucide-react";
 import { api } from "../services/api";
+import { motion, AnimatePresence } from "framer-motion";
 
-const IconMap = {
-  Footprints, Bike, Train, Bus, Users, Car, CarFront
+const TypewriterText = ({ text, delay = 15 }) => {
+  const [displayedText, setDisplayedText] = useState("");
+  
+  useEffect(() => {
+    setDisplayedText("");
+    let i = 0;
+    const timer = setInterval(() => {
+      setDisplayedText((prev) => text.substring(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(timer);
+    }, delay);
+    return () => clearInterval(timer);
+  }, [text, delay]);
+
+  return (
+    <span>
+      {displayedText}
+      <span className="cursor-blink" />
+    </span>
+  );
 };
 
 export default function Recommender() {
-  const { profile } = useOutletContext();
-  const [source, setSource] = useState(null);
-  const [destination, setDestination] = useState(null);
-
-  const [routeInfo, setRouteInfo] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
+  const [prompt, setPrompt] = useState("");
+  const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [actionState, setActionState] = useState(null); // 'accepted', 'skipped', null
+  const [history, setHistory] = useState([]);
+  const terminalEndRef = useRef(null);
 
-  // Calculate route and recommendations when source and dest are valid
+  const scrollToBottom = () => {
+    terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
-    const calculateRoute = async () => {
-      if (source && destination && source.lat && destination.lat) {
-        setLoading(true);
-        setActionState(null);
-        try {
-          // Get real distance/time from OSRM
-          const route = await locationService.getRoute(source, destination);
-          setRouteInfo(route);
+    scrollToBottom();
+  }, [response, loading, history]);
 
-          // Get smart recommendations based on distance, user profile, and (mock) weather
-          const isBadWeather = false; // Could be connected to real weather API
-          const recs = recommendationEngine.generateRecommendations(route.distanceKm, route.durationMins, isBadWeather);
-          setRecommendations(recs);
-        } catch (error) {
-          console.error("Failed to generate route recommendations", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-    calculateRoute();
-  }, [source, destination]);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!prompt.trim()) return;
 
-  const handleAction = async (accepted, selectedMode) => {
-    setActionState(accepted ? 'accepted' : 'skipped');
+    const userPrompt = prompt;
+    setPrompt("");
+    setLoading(true);
+    setHistory(prev => [...prev, { type: 'user', content: userPrompt }]);
+    
     try {
-      // Mock tracking API call
-      await api.feedback({
-        user_id: profile?.id || 1,
-        recommendation_id: selectedMode?.id || "skipped",
-        accepted,
-        action_taken: accepted ? selectedMode?.id : "none"
-      });
-
-      // Clear after delay
-      setTimeout(() => {
-        setActionState(null);
-        setSource(null);
-        setDestination(null);
-        setRecommendations([]);
-      }, 3000);
-    } catch (e) {
-      console.error(e);
-      setTimeout(() => setActionState(null), 2000);
+      const data = await api.recommend(userPrompt);
+      setHistory(prev => [...prev, { type: 'ai', content: data.recommendation }]);
+    } catch (error) {
+      setHistory(prev => [...prev, { type: 'error', content: "CRITICALERR: FAILED TO RETRIEVE CLIMATE DATA. RETRYING_PROTOCOL..." }]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getBestRecommendation = () => recommendations.length > 0 ? recommendations[0] : null;
-  const bestRec = getBestRecommendation();
-
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-10">
-      <div className="text-center space-y-3 max-w-2xl mx-auto mb-10">
-        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-          <Bot size={32} />
+    <div className="max-w-4xl mx-auto space-y-8 pb-20">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-[var(--glass-border)] pb-8">
+        <div>
+          <h2 className="text-4xl mb-2">Protocol <span className="text-[var(--eco-neon)]">AI</span></h2>
+          <p className="text-[var(--text-secondary)] text-sm uppercase tracking-widest mono">Autonomous Recommendation Kernel</p>
         </div>
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Smart Trip Planner</h1>
-        <p className="text-slate-500 text-lg">Enter your destination to get AI-optimized transport recommendations based on emissions, time, and your habits.</p>
+        <div className="p-4 bg-[var(--eco-dark)] rounded-3xl border border-[var(--glass-border)] shadow-[0_0_20px_rgba(57,255,20,0.05)]">
+          <Terminal className="text-[var(--eco-neon)]" size={32} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Input & Context */}
-        <div className="space-y-6">
-          <LocationInput
-             onSourceChange={setSource}
-             onDestinationChange={setDestination}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-1 text-slate-600">
-              <div className="flex items-center gap-2"><Clock size={16} className="text-indigo-500" /><span className="text-xs font-semibold text-slate-500 uppercase">Time</span></div>
-              <p className="font-semibold text-lg text-slate-800">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-            </div>
-            <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-1 text-slate-600">
-              <div className="flex items-center gap-2"><CloudRain size={16} className="text-sky-500" /><span className="text-xs font-semibold text-slate-500 uppercase">Weather</span></div>
-              <p className="font-semibold text-lg text-slate-800">Clear</p>
-            </div>
+      <div className="ai-terminal h-[600px] flex flex-col shadow-2xl relative overflow-hidden group">
+        {/* Terminal Header */}
+        <div className="bg-[#0a0f0a] px-5 py-3 flex items-center justify-between border-b border-[var(--glass-border)] z-10">
+          <div className="flex gap-2">
+            <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+            <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+            <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
           </div>
-
-          {routeInfo && !loading && (
-            <Card className="p-4 border-emerald-100 bg-emerald-50/50">
-               <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2"><Activity size={16}/> Trip Overview</h4>
-               <div className="flex justify-between items-center text-sm text-slate-700">
-                 <span>Distance: <b className="text-emerald-700">{routeInfo.distanceKm.toFixed(1)} km</b></span>
-                 <span>Est. Drive: <b className="text-emerald-700">{Math.round(routeInfo.durationMins)} min</b></span>
-               </div>
-            </Card>
-          )}
+          <div className="text-[10px] font-bold mono uppercase tracking-[0.2em] text-[var(--text-muted)] flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--eco-neon)] animate-pulse" />
+            LIVE_UPLINK_ESTABLISHED // CG-OS 4.6
+          </div>
         </div>
 
-        {/* Right Column - Recommendations */}
-        <div className="lg:col-span-2 relative min-h-[400px]">
-          <AnimatePresence mode="wait">
-            {!source || !destination ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50 text-slate-400"
+        {/* Scanline Texture Layer */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.05] z-0" 
+             style={{ background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, #39FF14 2px, #39FF14 4px)' }} />
+
+        {/* Terminal Body */}
+        <div className="flex-1 p-8 overflow-y-auto font-mono text-sm space-y-6 scrollbar-hide relative z-10">
+          <div className="text-[var(--text-muted)] animate-pulse">
+            [SYS] Booting Carbon Guardian AI Recommendation Kernel...<br/>
+            [SYS] Analyzing atmospheric carbon density... [OK]<br/>
+            [SYS] Synchronizing with local transport grids... [OK]<br/>
+            [SYS] System ready. Enter parameters for optimization.
+          </div>
+
+          <div className="space-y-6">
+            {history.map((item, idx) => (
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }} 
+                animate={{ opacity: 1, x: 0 }}
+                key={idx} 
+                className="space-y-2"
               >
-                <MapPin size={48} className="mb-4 text-slate-300" />
-                <p>Enter your start and end points to see recommendations</p>
-              </motion.div>
-            ) : loading ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-sm"
-              >
-                <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-500 animate-pulse font-medium">Analyzing routes & optimizing for low carbon...</p>
-              </motion.div>
-            ) : actionState ? (
-               <motion.div
-                 key="action"
-                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
-                 className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-sm"
-               >
-                 {actionState === 'accepted' ? (
-                   <>
-                     <ShieldCheck size={64} className="text-emerald-500 mb-4" />
-                     <h3 className="text-2xl font-bold text-slate-800">Great Choice!</h3>
-                     <p className="text-slate-500 mt-2 text-center max-w-sm">You are saving valuable CO₂ emissions today. Journey safely!</p>
-                   </>
-                 ) : (
-                   <>
-                     <Activity size={64} className="text-slate-400 mb-4" />
-                     <h3 className="text-xl font-bold text-slate-800">Route Skipped</h3>
-                     <p className="text-slate-500 mt-2">Ready for your next destination.</p>
-                   </>
-                 )}
-               </motion.div>
-            ) : bestRec ? (
-              <motion.div
-                key="results"
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="space-y-6"
-              >
-                {/* Top Recommended Mode */}
-                <Card className="overflow-hidden border-2 border-emerald-500 shadow-lg bg-white relative">
-                  <div className="absolute top-0 right-0 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg flex items-center gap-1">
-                    <Zap size={12} fill="currentColor" /> BEST CHOICE
+                {item.type === 'user' ? (
+                  <div className="flex gap-3 text-[var(--eco-electric)]">
+                    <span className="text-[var(--text-muted)] font-bold">{">"}</span>
+                    <span className="font-bold uppercase tracking-wider">{item.content}</span>
                   </div>
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                            {React.createElement(IconMap[bestRec.icon] || CarFront, { size: 24 })}
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold text-slate-800">{bestRec.name}</h3>
-                            <p className="text-slate-500 text-sm">AI Confidence: <b className="text-emerald-600">{bestRec.score}%</b></p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4 mb-6 text-sm">
-                           <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                             <span className="text-slate-400 text-xs block mb-1">Time</span>
-                             <span className="font-semibold text-slate-800">{bestRec.estimatedTimeMins} min</span>
-                           </div>
-                           <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                             <span className="text-slate-400 text-xs block mb-1">Emissions</span>
-                             <span className="font-semibold text-emerald-600">{bestRec.estimatedEmissions}g CO₂</span>
-                           </div>
-                           <div className="bg-slate-50 rounded-lg p-3 border border-slate-100">
-                             <span className="text-slate-400 text-xs block mb-1">Est. Cost</span>
-                             <span className="font-semibold text-slate-800">${bestRec.estimatedCost}</span>
-                           </div>
-                        </div>
-
-                        <p className="text-sm text-slate-600 bg-emerald-50 p-3 rounded-lg border border-emerald-100 mb-6">
-                          <strong className="text-emerald-800 block mb-1">Why this option?</strong>
-                          Based on distance, estimated time, and zero emissions, this is the most optimal route for your current trip.
-                        </p>
-
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => handleAction(true, bestRec)}
-                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-all shadow flex items-center justify-center gap-2"
-                          >
-                            Accept Mode <ChevronRight size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleAction(false, null)}
-                            className="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition-colors"
-                          >
-                            Skip
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Other Options */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider ml-1">Alternative Options</h4>
-                  {recommendations.slice(1, 4).map((rec, i) => (
-                    <div key={rec.id} className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center justify-between group hover:border-emerald-300 transition-colors cursor-pointer" onClick={() => handleAction(true, rec)}>
-                      <div className="flex items-center gap-4">
-                        <div className="text-slate-400 group-hover:text-emerald-500 transition-colors">
-                          {React.createElement(IconMap[rec.icon] || CarFront, { size: 20 })}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-slate-800">{rec.name}</p>
-                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
-                            <span>{rec.estimatedTimeMins} min</span>
-                            <span>•</span>
-                            <span className={rec.estimatedEmissions > 100 ? "text-amber-600" : "text-emerald-600"}>{rec.estimatedEmissions}g CO₂</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                         <div className="text-sm font-bold text-slate-800">${rec.estimatedCost}</div>
-                         <div className="text-xs text-slate-400">Score: {rec.score}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
+                ) : item.type === 'ai' ? (
+                  <div className="bg-[var(--eco-dark)]/20 p-5 rounded-2xl border border-[var(--glass-border)] text-[var(--eco-neon)] leading-relaxed relative">
+                    <div className="absolute -left-2 top-4 w-4 h-4 bg-[var(--eco-dark)] rotate-45 border-l border-b border-[var(--glass-border)]" />
+                    <TypewriterText text={item.content} />
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-[var(--eco-danger)] bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                    <AlertCircle size={14} />
+                    <span>{item.content}</span>
+                  </div>
+                )}
               </motion.div>
-            ) : null}
-          </AnimatePresence>
+            ))}
+
+            {loading && (
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-3 text-[var(--eco-neon)] mono animate-pulse"
+              >
+                <Loader2 className="animate-spin" size={16} />
+                <span>COMPUTING_FOOTPRINT_VECTORS...</span>
+              </motion.div>
+            )}
+          </div>
+          <div ref={terminalEndRef} />
+        </div>
+
+        {/* Terminal Input */}
+        <div className="p-6 bg-[#050a05] border-t border-[var(--glass-border)] relative z-10">
+          <form onSubmit={handleSubmit} className="relative group">
+            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[var(--eco-neon)] font-bold mono group-focus-within:animate-ping transition-all">
+              {">"}
+            </span>
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Command: optimize route / analyze footprint / suggest impact..."
+              className="w-full bg-[#081108] border border-[var(--glass-border)] rounded-2xl py-4 pl-12 pr-16 focus:outline-none focus:border-[var(--eco-neon)] focus:ring-4 focus:ring-[var(--eco-neon)]/5 transition-all mono text-sm text-[var(--eco-electric)] placeholder:text-[var(--text-muted)]"
+              autoFocus
+            />
+            <button
+              type="submit"
+              disabled={loading || !prompt.trim()}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-[var(--eco-neon)] text-[var(--eco-black)] rounded-xl disabled:opacity-30 transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(57,255,20,0.3)]"
+            >
+              <Send size={18} />
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Suggested Protocols */}
+      <div className="space-y-4">
+        <h3 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-[0.3em] ml-2">Available Protocols</h3>
+        <div className="flex flex-wrap gap-3">
+          {[
+            "Plan green route from Borivali to Colaba",
+            "Suggest reduction for daily electricity usage",
+            "Analyze carbon impact of red meat consumption",
+            "List carbon credit marketplace partners"
+          ].map((suggest, i) => (
+            <button
+              key={i}
+              onClick={() => setPrompt(suggest)}
+              className="px-5 py-2.5 rounded-2xl glass-card border-[var(--glass-border)] text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)] hover:border-[var(--eco-neon)] hover:text-[var(--eco-neon)] hover:bg-[var(--eco-neon)]/5 transition-all"
+            >
+              EXEC: {suggest.substring(0, 20)}...
+            </button>
+          ))}
         </div>
       </div>
     </div>

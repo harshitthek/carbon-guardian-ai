@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Users, Settings, Database, Activity, Map, ArrowUpRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Users, Settings, Database, Activity, Map, ShieldAlert } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -14,78 +14,85 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12 pb-20">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Admin Control Center</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Welcome back, {user?.name}. Manage platform settings and monitor performance.
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-2 text-[var(--eco-danger)] mono text-[10px] uppercase tracking-[0.3em] mb-2"
+        >
+          <ShieldAlert size={14} />
+          Restricted Access
+        </motion.div>
+        <h1 className="text-4xl md:text-5xl font-bold">Admin <span className="text-[var(--text-muted)]">Control</span></h1>
+        <p className="text-[var(--text-secondary)] mt-4">
+          Welcome back, {user?.name}. Platform management & monitoring.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {stat.title}
-              </CardTitle>
-              <stat.icon className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-              <p className="text-xs text-gray-500 mt-1">
-                {stat.change}
-              </p>
-            </CardContent>
-          </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, i) => (
+          <motion.div 
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="glass-card p-6 border-[var(--glass-border)] group hover:border-[var(--eco-neon)]/30 transition-all"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-muted)] font-bold">{stat.title}</p>
+              <stat.icon className="text-[var(--eco-electric)]" size={16} />
+            </div>
+            <div className="text-3xl font-bold text-white mono">{stat.value}</div>
+            <p className="text-xs text-[var(--eco-neon)] mt-2 mono">{stat.change}</p>
+          </motion.div>
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>System Settings</CardTitle>
-            <CardDescription>Manage global platform configurations</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="glass-card p-8 border-[var(--glass-border)]">
+          <div className="flex items-center gap-3 mb-8">
+            <Settings size={18} className="text-[var(--eco-neon)]" />
+            <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">System Settings</h3>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-5 bg-[var(--eco-dark)] rounded-2xl border border-[var(--glass-border)]">
                <div>
-                 <p className="font-medium text-sm text-gray-900">AI Recommendation Engine</p>
-                 <p className="text-xs text-gray-500">Currently using local datasets</p>
+                 <p className="font-bold text-white text-sm">AI Recommendation Engine</p>
+                 <p className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest mt-1">Using local datasets</p>
                </div>
-               <button className="text-sm text-emerald-600 font-medium hover:text-emerald-700">Configure</button>
+               <button className="text-xs text-[var(--eco-neon)] font-bold hover:underline">Configure</button>
             </div>
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <div className="flex items-center justify-between p-5 bg-[var(--eco-dark)] rounded-2xl border border-[var(--glass-border)]">
                <div>
-                 <p className="font-medium text-sm text-gray-900">Marketplace Verification</p>
-                 <p className="text-xs text-gray-500">3 pending community requests</p>
+                 <p className="font-bold text-white text-sm">Marketplace Verification</p>
+                 <p className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest mt-1">3 pending requests</p>
                </div>
-               <button className="text-sm text-emerald-600 font-medium hover:text-emerald-700">Review</button>
+               <button className="text-xs text-[var(--eco-sun)] font-bold hover:underline">Review</button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Admin Activity</CardTitle>
-            <CardDescription>Actions performed by administrators</CardDescription>
-          </CardHeader>
-          <CardContent>
-             <div className="space-y-4">
-               {[
-                 { action: "Updated recommendation weights", time: "2 hours ago" },
-                 { action: "Approved 'Green Campus Initiative'", time: "5 hours ago" },
-                 { action: "System health check passed", time: "1 day ago" }
-               ].map((log, i) => (
-                 <div key={i} className="flex items-center justify-between border-b border-gray-100 last:border-0 pb-3 last:pb-0">
-                    <p className="text-sm text-gray-700">{log.action}</p>
-                    <span className="text-xs text-gray-400">{log.time}</span>
-                 </div>
-               ))}
-             </div>
-          </CardContent>
-        </Card>
+        <div className="glass-card p-8 border-[var(--glass-border)]">
+          <div className="flex items-center gap-3 mb-8">
+            <Activity size={18} className="text-[var(--eco-electric)]" />
+            <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Recent Activity</h3>
+          </div>
+          <div className="space-y-4">
+            {[
+              { action: "Updated recommendation weights", time: "2 hours ago" },
+              { action: "Approved 'Green Campus Initiative'", time: "5 hours ago" },
+              { action: "System health check passed", time: "1 day ago" }
+            ].map((log, i) => (
+              <div key={i} className="flex items-center justify-between p-4 border-b border-[var(--glass-border)] last:border-0">
+                 <p className="text-sm text-[var(--text-primary)]">{log.action}</p>
+                 <span className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest">{log.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+
