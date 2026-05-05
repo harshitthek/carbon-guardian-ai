@@ -4,6 +4,7 @@ import AppLayout from "./layouts/AppLayout";
 import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Login from "./pages/Login";
+import Landing from "./pages/Landing";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
@@ -19,17 +20,18 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
 
-          <Route path="/" element={<ProtectedRoute />}>
+          <Route path="/app" element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="recommender" element={<Recommender />} />
-          <Route path="live-impact" element={<LiveImpact />} />
-          <Route path="rewards" element={<Rewards />} />
-          <Route path="community" element={<Community />} />
+              <Route index element={<Navigate to="/app/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="recommender" element={<Recommender />} />
+              <Route path="live-impact" element={<LiveImpact />} />
+              <Route path="rewards" element={<Rewards />} />
+              <Route path="community" element={<Community />} />
               <Route path="marketplace" element={<Marketplace />} />
               <Route path="simulation" element={<Simulation />} />
 
@@ -38,6 +40,16 @@ export default function App() {
               </Route>
             </Route>
           </Route>
+
+          {/* Fallback for legacy /dashboard links etc */}
+          <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
+          <Route path="/profile" element={<Navigate to="/app/profile" replace />} />
+          <Route path="/recommender" element={<Navigate to="/app/recommender" replace />} />
+          <Route path="/live-impact" element={<Navigate to="/app/live-impact" replace />} />
+          <Route path="/rewards" element={<Navigate to="/app/rewards" replace />} />
+          <Route path="/community" element={<Navigate to="/app/community" replace />} />
+          <Route path="/marketplace" element={<Navigate to="/app/marketplace" replace />} />
+          <Route path="/simulation" element={<Navigate to="/app/simulation" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Users, TrendingUp, Medal } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, TrendingUp, Medal, Globe, ChevronRight, Activity } from "lucide-react";
 import { api } from "../services/api";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Community() {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -12,109 +11,130 @@ export default function Community() {
   }, []);
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-10">
+    <div className="space-y-12 pb-20">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
-          <Users className="text-emerald-500" /> Community
-        </h1>
-        <p className="text-slate-500 mt-2">See how your community ranks and participate in group challenges.</p>
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="flex items-center gap-2 text-[var(--eco-neon)] mono text-[10px] uppercase tracking-[0.3em] mb-2"
+        >
+          <Users size={14} />
+          Global Neural Network
+        </motion.div>
+        <h1 className="text-4xl md:text-5xl font-bold">Guardian <span className="text-[var(--text-muted)]">Collective</span></h1>
+        <p className="text-[var(--text-secondary)] mt-4">Syncing efforts with climate-conscious cells worldwide.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Your Community Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Stats */}
         <div className="lg:col-span-1 space-y-6">
-          <Card className="bg-gradient-to-b from-emerald-600 to-teal-700 text-white shadow-md border-none relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Users size={100} />
+          <div className="bento-card bg-gradient-to-br from-[var(--eco-surface)] to-[var(--eco-black)] border-[var(--eco-electric)]/20 p-8 text-center relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-700">
+              <Users size={120} />
             </div>
-            <CardContent className="p-6 text-center relative z-10 pt-10">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 backdrop-blur-sm border border-white/30">
-                🌳
+            <div className="relative z-10">
+              <div className="w-20 h-20 bg-[var(--eco-dark)] rounded-[2.5rem] flex items-center justify-center text-4xl mx-auto mb-6 border border-[var(--glass-border)] shadow-[0_0_30px_rgba(57,255,20,0.1)]">
+                🏛️
               </div>
-              <h3 className="text-2xl font-bold mb-1">Your Community</h3>
-              <p className="text-emerald-100 text-sm mb-6">Delhi University Campus</p>
+              <h3 className="text-2xl font-bold mb-1">Your Node</h3>
+              <p className="text-[var(--eco-electric)] mono text-[10px] uppercase tracking-widest mb-8">DU_CAMPUS_ID_042</p>
 
-              <div className="bg-black/10 rounded-xl p-4 backdrop-blur-md">
-                <p className="text-emerald-100 text-sm uppercase tracking-wider font-bold mb-1">Current Rank</p>
-                <div className="text-4xl font-black text-white">#3</div>
+              <div className="bg-[var(--eco-black)]/40 border border-[var(--glass-border)] rounded-2xl p-6 backdrop-blur-md">
+                <p className="text-[var(--text-muted)] text-[10px] uppercase tracking-[0.2em] font-bold mb-2">Global Rank</p>
+                <div className="text-5xl font-black text-white mono">#03</div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="shadow-sm border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2 text-slate-700"><TrendingUp size={18} className="text-emerald-500" /> Weekly Impact</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-600">CO₂ Reduced</span>
-                    <span className="font-bold text-slate-800">120 kg</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full"><div className="bg-emerald-500 h-full rounded-full" style={{width: '75%'}}></div></div>
+          <div className="glass-card p-6 border-[var(--glass-border)] space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.3em]">Node Vitals</h3>
+              <Activity size={14} className="text-[var(--eco-neon)]" />
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] mono uppercase tracking-widest">
+                  <span className="text-[var(--text-secondary)]">CO₂ Recovery</span>
+                  <span className="text-[var(--eco-neon)] font-bold">120 KG</span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-600">Active Members</span>
-                    <span className="font-bold text-slate-800">452</span>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2 rounded-full"><div className="bg-blue-500 h-full rounded-full" style={{width: '60%'}}></div></div>
+                <div className="w-full bg-[var(--eco-darkest)] h-1.5 rounded-full overflow-hidden border border-[var(--glass-border)]">
+                  <motion.div className="bg-[var(--eco-neon)] h-full" initial={{width:0}} animate={{width: '75%'}} transition={{duration:1}} />
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="space-y-3">
+                <div className="flex justify-between text-[10px] mono uppercase tracking-widest">
+                  <span className="text-[var(--text-secondary)]">Active Links</span>
+                  <span className="text-[var(--eco-electric)] font-bold">452</span>
+                </div>
+                <div className="w-full bg-[var(--eco-darkest)] h-1.5 rounded-full overflow-hidden border border-[var(--glass-border)]">
+                  <motion.div className="bg-[var(--eco-electric)] h-full" initial={{width:0}} animate={{width: '60%'}} transition={{duration:1, delay:0.2}} />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Leaderboard */}
+        {/* Leaderboard Panel */}
         <div className="lg:col-span-2">
-          <Card className="shadow-sm border-slate-200 h-full">
-            <CardHeader className="border-b border-slate-100 pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2"><Medal size={20} className="text-amber-500"/> Global Leaderboard</CardTitle>
-                <select className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg px-3 py-1.5 outline-none focus:ring-2 focus:ring-emerald-500/20">
-                  <option>This Week</option>
-                  <option>This Month</option>
-                  <option>All Time</option>
-                </select>
+          <div className="glass-card border-[var(--glass-border)] h-full flex flex-col overflow-hidden">
+            <div className="bg-white/5 border-b border-[var(--glass-border)] px-8 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Medal className="text-[var(--eco-sun)]" size={20} />
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--text-secondary)]">Global Rankings</h3>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y divide-slate-100">
+              <select className="bg-[var(--eco-dark)] border border-[var(--glass-border)] text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest rounded-xl px-4 py-2 outline-none focus:border-[var(--eco-neon)] transition-all">
+                <option>Week_Cycle_42</option>
+                <option>Month_Cycle_05</option>
+                <option>All_Time_Log</option>
+              </select>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto scrollbar-hide">
+              <AnimatePresence>
                 {leaderboard.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 animate-pulse">Loading rankings...</div>
+                  <div className="p-20 text-center text-[var(--text-muted)] mono text-xs uppercase tracking-widest animate-pulse">Synchronizing rankings...</div>
                 ) : (
-                  leaderboard.map((team, index) => (
-                    <motion.div
-                      key={team.name}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className={`flex items-center p-4 hover:bg-slate-50 transition-colors ${team.name === "Your Community" ? "bg-emerald-50/50" : ""}`}
-                    >
-                      <div className="w-8 text-center font-bold text-slate-400 mr-4">
-                        {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${team.rank}`}
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xl mr-4 shadow-sm border border-slate-200">
-                        {team.avatar}
-                      </div>
-                      <div className="flex-1">
-                        <p className={`font-semibold ${team.name === "Your Community" ? "text-emerald-700" : "text-slate-800"}`}>
-                          {team.name}
-                        </p>
-                      </div>
-                      <div className="font-bold text-slate-700 bg-slate-100 px-3 py-1 rounded-lg text-sm">
-                        {team.score.toLocaleString()} pts
-                      </div>
-                    </motion.div>
-                  ))
+                  <div className="divide-y divide-[var(--glass-border)]">
+                    {leaderboard.map((team, index) => (
+                      <motion.div
+                        key={team.name}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className={`flex items-center p-6 group transition-all cursor-pointer ${
+                          team.name === "Your Community" ? "bg-[var(--eco-neon)]/5" : "hover:bg-white/[0.02]"
+                        }`}
+                      >
+                        <div className="w-12 text-center font-bold text-lg mono text-[var(--text-muted)] group-hover:text-[var(--eco-neon)] transition-colors">
+                          {index === 0 ? "01" : index === 1 ? "02" : index === 2 ? "03" : (index + 1).toString().padStart(2, '0')}
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl bg-[var(--eco-dark)] flex items-center justify-center text-2xl mr-6 border border-[var(--glass-border)] shadow-inner group-hover:scale-110 transition-transform">
+                          {team.avatar}
+                        </div>
+                        <div className="flex-1">
+                          <p className={`font-bold tracking-tight text-lg ${team.name === "Your Community" ? "text-[var(--eco-neon)]" : "text-white"}`}>
+                            {team.name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                             <div className="w-1.5 h-1.5 rounded-full bg-[var(--eco-neon)]/30 group-hover:bg-[var(--eco-neon)] transition-colors" />
+                             <span className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest">Active_Uplink</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-white mono">
+                            {team.score.toLocaleString()}
+                          </div>
+                          <div className="text-[10px] text-[var(--text-muted)] mono uppercase tracking-widest">GP_CREDITS</div>
+                        </div>
+                        <ChevronRight className="ml-6 text-[var(--glass-border)] group-hover:text-[var(--eco-neon)] transition-colors" size={18} />
+                      </motion.div>
+                    ))}
+                  </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </AnimatePresence>
+            </div>
+          </div>
         </div>
-
       </div>
     </div>
   );
