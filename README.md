@@ -1,5 +1,7 @@
 # Carbon Guardian AI
 
+*Last Updated: 17 July*
+
 Carbon Guardian AI is a full-stack personalized carbon footprint reduction platform. It combines a React dashboard with a FastAPI backend, SQLite persistence, emissions calculations, reward feedback, community insights, simulation projections, and an AI recommendation engine that learns from user activity.
 
 ## What It Includes
