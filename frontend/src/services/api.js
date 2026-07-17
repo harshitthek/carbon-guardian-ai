@@ -165,9 +165,11 @@ async function request(path, options = {}) {
  * @typedef {Object} CommunityGroup
  * @property {number} id
  * @property {string} name
- * @property {string} location
+ * @property {number} weekly_reduction_kg
  * @property {number} rank
- * @property {number} total_points
+ * @property {number} members
+ * @property {number} score
+ * @property {string} avatar
  * 
  * @typedef {Object} Recommendation
  * @property {number} id
@@ -201,7 +203,6 @@ export const api = {
   
   /** @returns {Promise<CommunityGroup[]>} */
   leaderboard: () => request("/community/leaderboard").then(res => res.groups || res),
-  
   /** @returns {Promise<MarketplaceItem[]>} */
   marketplace: () => request("/marketplace"),
   

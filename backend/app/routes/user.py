@@ -24,7 +24,7 @@ def profile(user_id: int = 1) -> dict:
     with get_db() as db:
         user = dict(db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone())
         rewards = db.execute(
-            "SELECT source, points, created_at FROM rewards WHERE user_id = ? ORDER BY created_at DESC LIMIT 6",
+            "SELECT id, source, points, created_at as date FROM rewards WHERE user_id = ? ORDER BY created_at DESC LIMIT 6",
             (user_id,),
         ).fetchall()
         emissions = db.execute(
@@ -34,24 +34,36 @@ def profile(user_id: int = 1) -> dict:
         t = emissions["t"] or 0
         e = emissions["e"] or 0
         w = emissions["w"] or 0
-        total = t + e + w or 1
+        total = t + e + w
+        
+        if total > 0:
+            t_pct = round((t/total)*100)
+            e_pct = round((e/total)*100)
+            w_pct = 100 - t_pct - e_pct
+        else:
+            t_pct = e_pct = w_pct = 0
         
         trend_rows = db.execute(
-            "SELECT created_at, total_kg FROM emissions_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 7",
+            """
+            SELECT DATE(created_at) as day, SUM(total_kg) as co2 
+            FROM emissions_log 
+            WHERE user_id = ? 
+              AND created_at >= date('now', '-7 days')
+            GROUP BY DATE(created_at)
+            ORDER BY DATE(created_at) ASC
+            """,
             (user_id,)
         ).fetchall()
         
-        weekly_trend = [{"day": row["created_at"][5:10], "co2": row["total_kg"]} for row in reversed(trend_rows)]
-        if not weekly_trend:
-            weekly_trend = [{"day": "None", "co2": 0}]
+        weekly_trend = [{"day": row["day"][5:10], "co2": row["co2"]} for row in trend_rows]
 
         return {
             **user, 
             "recent_rewards": [dict(row) for row in rewards],
             "footprint_breakdown": [
-                { "name": "Transport", "value": round((t/total)*100), "fill": "#10b981" },
-                { "name": "Electricity", "value": round((e/total)*100), "fill": "#3b82f6" },
-                { "name": "Waste", "value": round((w/total)*100), "fill": "#ef4444" }
+                { "name": "Transport", "value": t_pct, "fill": "#10b981" },
+                { "name": "Electricity", "value": e_pct, "fill": "#3b82f6" },
+                { "name": "Waste", "value": w_pct, "fill": "#ef4444" }
             ],
             "weekly_trend": weekly_trend
         }
