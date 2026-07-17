@@ -125,7 +125,7 @@ export const api = {
   profile: () => request("/user/profile"),
   liveEnvironment: () => request("/environment/live?location=Delhi"),
   leaderboard: () => request("/community/leaderboard").then(res => res.groups || res),
-  marketplace: () => request("/marketplace").catch(() => mockData.marketplace),
+  marketplace: () => request("/marketplace"),
   recommend: (payload) =>
     request("/ai/recommend", {
       method: "POST",
