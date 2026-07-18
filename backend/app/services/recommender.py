@@ -76,7 +76,6 @@ class RecommendationEngine:
 
     def recommend(self, user_id: int, time_of_day: int, location_aqi: int, weather_temp: float) -> RecommendationResult:
         """Generate a personalized recommendation for the user's next action."""
-        start_time = time.perf_counter()
         activities = self.db.query(UserActivity).filter(UserActivity.user_id == user_id).order_by(UserActivity.created_at.desc()).limit(250).all()
         rows = [
             {
@@ -95,6 +94,8 @@ class RecommendationEngine:
         ]
 
         fallback_reason = None
+        start_time = time.perf_counter()
+        
         try:
             from app.ml.tfrs_model import CarbonTFRSModel
 
@@ -114,8 +115,8 @@ class RecommendationEngine:
             logger.info(f"Generated TFRS recommendation in {latency_ms}ms")
             
         except ImportError as e:
-            fallback_reason = f"ML dependencies not installed: {e}"
-            logger.warning(f"Falling back to sqlite-behavior-ranking. {fallback_reason}")
+            logger.warning("Falling back to sqlite-behavior-ranking due to ImportError: %s", e)
+            fallback_reason = "ML dependencies not installed"
             
             learned = BehaviorRankingModel(rows)
             predicted, confidence = learned.predict_mode(time_of_day)
