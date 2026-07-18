@@ -37,6 +37,7 @@ def signup(payload: SignupRequest, response: Response):
         key="access_token",
         value=access_token,
         httponly=True,
+        secure=True,
         max_age=7 * 24 * 60 * 60,
         samesite="lax",
     )
@@ -55,6 +56,7 @@ def login(payload: LoginRequest, response: Response):
         key="access_token",
         value=access_token,
         httponly=True,
+        secure=True,
         max_age=7 * 24 * 60 * 60,
         samesite="lax",
     )
@@ -62,7 +64,7 @@ def login(payload: LoginRequest, response: Response):
 
 @router.post("/logout")
 def logout(response: Response):
-    response.delete_cookie("access_token", httponly=True, samesite="lax")
+    response.delete_cookie("access_token", httponly=True, secure=True, samesite="lax")
     return {"status": "success"}
 
 @router.get("/me")
@@ -73,5 +75,5 @@ def get_me(current_user: dict = Depends(get_current_user)):
         "email": current_user["email"],
         "level": current_user["level"],
         "persona": current_user["persona"],
-        "role": "user" if current_user["email"] != "admin@carbon.ai" else "admin"
+        "role": current_user["role"]
     }

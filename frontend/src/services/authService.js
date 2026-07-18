@@ -9,7 +9,9 @@ export const authService = {
       credentials: 'include'
     });
     if (!res.ok) throw new Error('Login failed');
-    return authService.getCurrentUser();
+    const user = await authService.getCurrentUser();
+    if (!user) throw new Error('Failed to retrieve user session');
+    return user;
   },
 
   signup: async (name, email, password) => {
@@ -23,11 +25,14 @@ export const authService = {
       const data = await res.json().catch(() => ({}));
       throw new Error(data.detail || 'Signup failed');
     }
-    return authService.getCurrentUser();
+    const user = await authService.getCurrentUser();
+    if (!user) throw new Error('Failed to retrieve user session');
+    return user;
   },
 
   logout: async () => {
-    await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+    const res = await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+    if (!res.ok) throw new Error('Logout failed');
   },
 
   getCurrentUser: async () => {

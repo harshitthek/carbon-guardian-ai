@@ -50,13 +50,22 @@ def feedback(payload: FeedbackIn, current_user: dict = Depends(get_current_user)
     user_id = current_user["id"]
     points = points_for_action(payload.action_taken) if payload.accepted else 0
     with get_db() as db:
-        db.execute(
-            "UPDATE recommendations SET accepted = ? WHERE id = ? AND user_id = ?",
-            (1 if payload.accepted else 0, payload.recommendation_id, user_id),
-        )
-        if points:
-            db.execute("INSERT INTO rewards (user_id, source, points) VALUES (?, ?, ?)", (user_id, payload.action_taken, points))
-            db.execute("UPDATE users SET green_points = green_points + ? WHERE id = ?", (points, user_id))
+        if payload.accepted:
+            cursor = db.execute(
+                "UPDATE recommendations SET accepted = 1 WHERE id = ? AND user_id = ? AND accepted = 0",
+                (payload.recommendation_id, user_id),
+            )
+            if cursor.rowcount > 0 and points:
+                db.execute("INSERT INTO rewards (user_id, source, points) VALUES (?, ?, ?)", (user_id, payload.action_taken, points))
+                db.execute("UPDATE users SET green_points = green_points + ? WHERE id = ?", (points, user_id))
+            else:
+                points = 0
+        else:
+            db.execute(
+                "UPDATE recommendations SET accepted = 0 WHERE id = ? AND user_id = ?",
+                (payload.recommendation_id, user_id),
+            )
+            points = 0
     return {"accepted": payload.accepted, "points_awarded": points, "retrain_signal": payload.accepted}
 
 
