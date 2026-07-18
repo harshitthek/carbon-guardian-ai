@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.database import get_db
@@ -17,26 +17,24 @@ class EmissionIn(BaseModel):
     waste_kg: float
 
 
+from sqlalchemy.orm import Session
+from app.models import EmissionsLog
+
 @router.post("/calculate")
-def calculate(payload: EmissionIn) -> dict:
+def calculate(payload: EmissionIn, db: Session = Depends(get_db)) -> dict:
     result = calculate_emission(
         payload.transport_mode,
         payload.distance_km,
         payload.electricity_kwh,
         payload.waste_kg,
     )
-    with get_db() as db:
-        db.execute(
-            """
-            INSERT INTO emissions_log (user_id, transport_kg, electricity_kg, waste_kg, total_kg)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                payload.user_id,
-                result["transport_kg"],
-                result["electricity_kg"],
-                result["waste_kg"],
-                result["total_kg"],
-            ),
-        )
+    log = EmissionsLog(
+        user_id=payload.user_id,
+        transport_kg=result["transport_kg"],
+        electricity_kg=result["electricity_kg"],
+        waste_kg=result["waste_kg"],
+        total_kg=result["total_kg"],
+    )
+    db.add(log)
+    db.commit()
     return result

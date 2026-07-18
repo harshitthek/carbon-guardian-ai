@@ -7,7 +7,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import init_db, seed_db
 from app.routes import ai, community, emission, environment, simulation, user, auth
 
 app = FastAPI(title="Carbon Guardian AI", version="1.0.0")
@@ -20,12 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def startup() -> None:
-    init_db()
-    seed_db()
 
 
 @app.get("/health")

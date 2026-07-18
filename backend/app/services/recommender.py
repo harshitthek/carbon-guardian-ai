@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from sqlite3 import Connection
+from sqlalchemy.orm import Session
+from app.models import UserActivity
 
 from app.services.emissions import reduction_percent
 
@@ -56,16 +57,25 @@ class BehaviorRankingModel:
 
 
 class RecommendationEngine:
-    def __init__(self, db: Connection) -> None:
+    def __init__(self, db: Session) -> None:
         self.db = db
 
     def recommend(self, user_id: int, time_of_day: int, location_aqi: int, weather_temp: float) -> RecommendationResult:
+        activities = self.db.query(UserActivity).filter(UserActivity.user_id == user_id).order_by(UserActivity.created_at.desc()).limit(250).all()
         rows = [
-            dict(row)
-            for row in self.db.execute(
-                "SELECT * FROM user_activity WHERE user_id = ? ORDER BY created_at DESC LIMIT 250",
-                (user_id,),
-            ).fetchall()
+            {
+                "id": a.id,
+                "user_id": a.user_id,
+                "action": a.action,
+                "transport_mode": a.transport_mode,
+                "electricity_kwh": a.electricity_kwh,
+                "waste_kg": a.waste_kg,
+                "time_of_day": a.time_of_day,
+                "location_aqi": a.location_aqi,
+                "weather_temp": a.weather_temp,
+                "created_at": str(a.created_at)
+            }
+            for a in activities
         ]
 
         try:
