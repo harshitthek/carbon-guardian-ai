@@ -165,9 +165,11 @@ async function request(path, options = {}) {
  * @typedef {Object} CommunityGroup
  * @property {number} id
  * @property {string} name
- * @property {string} location
+ * @property {number} weekly_reduction_kg
  * @property {number} rank
- * @property {number} total_points
+ * @property {number} members
+ * @property {number} score
+ * @property {string} avatar
  * 
  * @typedef {Object} Recommendation
  * @property {number} id
@@ -200,8 +202,15 @@ export const api = {
   liveEnvironment: () => request("/environment/live?location=Delhi"),
   
   /** @returns {Promise<CommunityGroup[]>} */
-  leaderboard: () => request("/community/leaderboard").then(res => res.groups || res),
-  
+  leaderboard: () => request("/community/leaderboard").then(res => {
+    const groups = res.groups || res;
+    return groups.map(g => ({
+      ...g,
+      score: g.score ?? g.weekly_reduction_kg ?? g.total_points ?? 0,
+      avatar: g.avatar || "🌱"
+    }));
+  }),
+
   /** @returns {Promise<MarketplaceItem[]>} */
   marketplace: () => request("/marketplace"),
   

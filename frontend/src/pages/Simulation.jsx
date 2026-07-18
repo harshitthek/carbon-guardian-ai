@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Simulation() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const [sliders, setSliders] = useState({
     ev: 30,
@@ -16,11 +17,13 @@ export default function Simulation() {
   const runSimulation = async () => {
     setLoading(true);
     setResult(null);
+    setError(null);
     try {
       const res = await api.simulation(sliders);
       setResult(res);
     } catch (e) {
       console.error(e);
+      setError("Failed to run simulation. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -129,6 +132,19 @@ export default function Simulation() {
                   >
                     <RefreshCw size={48} className="text-[var(--eco-neon)] animate-spin mb-6" />
                     <p className="text-[var(--eco-neon)] mono text-xs uppercase tracking-[0.2em] animate-pulse">Running Neural Projections...</p>
+                  </motion.div>
+                ) : error ? (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    className="flex flex-col items-center justify-center text-center p-8 border border-red-500/20 bg-red-500/5 rounded-2xl"
+                  >
+                    <Info className="text-red-500 mb-4" size={32} />
+                    <h3 className="text-lg font-bold text-red-500 mb-2">Projection Failed</h3>
+                    <p className="text-sm text-[var(--text-secondary)]">{error}</p>
+                    <button onClick={runSimulation} className="mt-6 px-6 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-all text-sm font-bold">
+                      Retry
+                    </button>
                   </motion.div>
                 ) : result ? (
                   <motion.div
