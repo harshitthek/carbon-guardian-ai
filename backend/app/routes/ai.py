@@ -15,7 +15,6 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 class RecommendIn(BaseModel):
     """Payload for requesting AI recommendations."""
-    user_id: int = 1
     time_of_day: int
     location_aqi: int
     weather_temp: float
@@ -23,7 +22,6 @@ class RecommendIn(BaseModel):
 
 class FeedbackIn(BaseModel):
     """Payload for providing feedback on AI recommendations."""
-    user_id: int = 1
     recommendation_id: int
     accepted: bool
     action_taken: str

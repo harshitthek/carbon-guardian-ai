@@ -47,9 +47,10 @@ def profile(current_user: User = Depends(get_current_user), db: Session = Depend
         func.sum(EmissionsLog.electricity_kg).label("e"),
         func.sum(EmissionsLog.waste_kg).label("w")
     ).filter(EmissionsLog.user_id == user_id).first()
-    t = emissions.t or 0
-    e = emissions.e or 0
-    w = emissions.w or 0
+    
+    t = (emissions[0] if emissions else 0) or 0
+    e = (emissions[1] if emissions else 0) or 0
+    w = (emissions[2] if emissions else 0) or 0
     total = t + e + w
     
     if total > 0:
