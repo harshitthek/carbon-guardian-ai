@@ -17,12 +17,10 @@ export default function Simulation() {
     setLoading(true);
     setResult(null);
     try {
-      let sid = "ev_adoption_30";
-      if (sliders.solar > 40) sid = "solar_grid_50";
-      if (sliders.plastic > 80) sid = "zero_plastic_week";
-
-      const res = await api.simulation(sid);
+      const res = await api.simulation(sliders);
       setResult(res);
+    } catch (e) {
+      console.error(e);
     } finally {
       setLoading(false);
     }

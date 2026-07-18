@@ -27,24 +27,33 @@ def profile(user_id: int = 1) -> dict:
             "SELECT source, points, created_at FROM rewards WHERE user_id = ? ORDER BY created_at DESC LIMIT 6",
             (user_id,),
         ).fetchall()
+        emissions = db.execute(
+            "SELECT SUM(transport_kg) as t, SUM(electricity_kg) as e, SUM(waste_kg) as w FROM emissions_log WHERE user_id = ?",
+            (user_id,)
+        ).fetchone()
+        t = emissions["t"] or 0
+        e = emissions["e"] or 0
+        w = emissions["w"] or 0
+        total = t + e + w or 1
+        
+        trend_rows = db.execute(
+            "SELECT created_at, total_kg FROM emissions_log WHERE user_id = ? ORDER BY created_at DESC LIMIT 7",
+            (user_id,)
+        ).fetchall()
+        
+        weekly_trend = [{"day": row["created_at"][5:10], "co2": row["total_kg"]} for row in reversed(trend_rows)]
+        if not weekly_trend:
+            weekly_trend = [{"day": "None", "co2": 0}]
+
         return {
             **user, 
             "recent_rewards": [dict(row) for row in rewards],
             "footprint_breakdown": [
-                { "name": "Transport", "value": 45, "fill": "#10b981" },
-                { "name": "Electricity", "value": 30, "fill": "#3b82f6" },
-                { "name": "Food", "value": 15, "fill": "#f59e0b" },
-                { "name": "Waste", "value": 10, "fill": "#ef4444" }
+                { "name": "Transport", "value": round((t/total)*100), "fill": "#10b981" },
+                { "name": "Electricity", "value": round((e/total)*100), "fill": "#3b82f6" },
+                { "name": "Waste", "value": round((w/total)*100), "fill": "#ef4444" }
             ],
-            "weekly_trend": [
-                { "day": "Mon", "co2": 14.2 },
-                { "day": "Tue", "co2": 12.8 },
-                { "day": "Wed", "co2": 15.1 },
-                { "day": "Thu", "co2": 11.4 },
-                { "day": "Fri", "co2": 10.9 },
-                { "day": "Sat", "co2": 9.5 },
-                { "day": "Sun", "co2": 8.2 }
-            ]
+            "weekly_trend": weekly_trend
         }
 
 

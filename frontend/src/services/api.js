@@ -98,10 +98,17 @@ async function request(path, options = {}) {
     if (path.includes("/environment/live")) return mockData.environment;
     if (path.includes("/community/leaderboard")) return mockData.leaderboard;
     if (path.includes("/ai/recommend")) return mockData.recommendation;
-    if (path.includes("/simulation/run/ev_adoption_30")) return mockData.scenarios["ev_adoption_30"];
-    if (path.includes("/simulation/run/solar_grid_50")) return mockData.scenarios["solar_grid_50"];
-    if (path.includes("/simulation/run/zero_plastic_week")) return mockData.scenarios["zero_plastic_week"];
     if (path.includes("/marketplace")) return mockData.marketplace;
+    if (path.includes("/simulation/run")) {
+      const p = JSON.parse(options.body || "{}");
+      return {
+        scenario_id: "mock_scenario",
+        description: `Mock Projection: ${p.ev||30}% EV, ${p.solar||20}% Solar, ${p.plastic||50}% Plastic`,
+        co2_reduced_kg: 2500000,
+        aqi_improvement_percent: 15,
+        temp_reduction_c: 0.5
+      };
+    }
 
     // Simulate successful post
     if (options.method === "POST") return { success: true };
@@ -121,20 +128,107 @@ async function request(path, options = {}) {
   return response.json();
 }
 
+/**
+ * @typedef {Object} Reward
+ * @property {string} source
+ * @property {number} points
+ * @property {string} created_at
+ * 
+ * @typedef {Object} FootprintBreakdown
+ * @property {string} name
+ * @property {number} value
+ * @property {string} fill
+ * 
+ * @typedef {Object} WeeklyTrend
+ * @property {string} day
+ * @property {number} co2
+ *
+ * @typedef {Object} UserProfile
+ * @property {number} id
+ * @property {string} name
+ * @property {string} email
+ * @property {number} level
+ * @property {string} persona
+ * @property {number} green_points
+ * @property {string} location
+ * @property {Reward[]} recent_rewards
+ * @property {FootprintBreakdown[]} footprint_breakdown
+ * @property {WeeklyTrend[]} weekly_trend
+ * 
+ * @typedef {Object} Environment
+ * @property {number} aqi
+ * @property {number} co2_ppm
+ * @property {number} temperature_c
+ * @property {string} city
+ * @property {number} trees_equivalent
+ * 
+ * @typedef {Object} CommunityGroup
+ * @property {number} id
+ * @property {string} name
+ * @property {string} location
+ * @property {number} rank
+ * @property {number} total_points
+ * 
+ * @typedef {Object} Recommendation
+ * @property {number} id
+ * @property {string} prediction
+ * @property {string} recommendation
+ * @property {number} impact_percent
+ * @property {number} confidence
+ * @property {string} type
+ * 
+ * @typedef {Object} Scenario
+ * @property {string} scenario_id
+ * @property {number} co2_reduced_kg
+ * @property {number} aqi_improvement_percent
+ * @property {number} temp_reduction_c
+ * @property {string} description
+ * 
+ * @typedef {Object} MarketplaceItem
+ * @property {number} id
+ * @property {string} title
+ * @property {string} category
+ * @property {number} points
+ * @property {string} icon
+ */
+
 export const api = {
+  /** @returns {Promise<UserProfile>} */
   profile: () => request("/user/profile"),
+  
+  /** @returns {Promise<Environment>} */
   liveEnvironment: () => request("/environment/live?location=Delhi"),
+  
+  /** @returns {Promise<CommunityGroup[]>} */
   leaderboard: () => request("/community/leaderboard").then(res => res.groups || res),
-  marketplace: () => request("/marketplace").catch(() => mockData.marketplace),
+  
+  /** @returns {Promise<MarketplaceItem[]>} */
+  marketplace: () => request("/marketplace"),
+  
+  /** 
+   * @param {Object} payload 
+   * @returns {Promise<Recommendation>} 
+   */
   recommend: (payload) =>
     request("/ai/recommend", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
+    
+  /** @param {Object} payload */
   feedback: (payload) =>
     request("/ai/feedback", {
       method: "POST",
       body: JSON.stringify(payload),
     }),
-  simulation: (scenarioId) => request(`/simulation/run/${scenarioId}`),
+    
+  /** 
+   * @param {Object} payload 
+   * @returns {Promise<Scenario>} 
+   */
+  simulation: (payload) =>
+    request("/simulation/run", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
 };
