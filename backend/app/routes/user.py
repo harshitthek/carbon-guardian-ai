@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.database import get_db
+from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/user", tags=["user"])
 
@@ -20,7 +21,8 @@ class ActivityIn(BaseModel):
 
 
 @router.get("/profile")
-def profile(user_id: int = 1) -> dict:
+def profile(current_user: dict = Depends(get_current_user)) -> dict:
+    user_id = current_user["id"]
     with get_db() as db:
         user = dict(db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone())
         rewards = db.execute(
@@ -70,7 +72,8 @@ def profile(user_id: int = 1) -> dict:
 
 
 @router.get("/activity")
-def activity(user_id: int = 1) -> dict:
+def activity(current_user: dict = Depends(get_current_user)) -> dict:
+    user_id = current_user["id"]
     with get_db() as db:
         rows = db.execute(
             "SELECT * FROM user_activity WHERE user_id = ? ORDER BY created_at DESC LIMIT 20",
@@ -80,7 +83,8 @@ def activity(user_id: int = 1) -> dict:
 
 
 @router.post("/activity")
-def add_activity(payload: ActivityIn) -> dict:
+def add_activity(payload: ActivityIn, current_user: dict = Depends(get_current_user)) -> dict:
+    user_id = current_user["id"]
     with get_db() as db:
         db.execute(
             """
@@ -89,7 +93,7 @@ def add_activity(payload: ActivityIn) -> dict:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                payload.user_id,
+                user_id,
                 payload.action,
                 payload.transport_mode,
                 payload.electricity_kwh,

@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Leaf, Mail, User, ArrowRight, Globe } from 'lucide-react';
+import { Leaf, Mail, User, ArrowRight, Lock, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Login() {
+  const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,30 +22,28 @@ export default function Login() {
     e.preventDefault();
     setError('');
 
-    if (!email) {
-      setError('Please enter an email address');
+    if (!email || !password || (isSignup && !name)) {
+      setError('Please complete all required fields.');
       return;
     }
 
     setIsLoading(true);
     try {
-      await login(email, name);
+      if (isSignup) {
+        await signup(name, email, password);
+      } else {
+        await login(email, password);
+      }
       navigate(from, { replace: true });
     } catch (err) {
-      setError('System failure: Authentication protocol offline.');
+      setError(err.message || 'System failure: Authentication protocol offline.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    setEmail('user@gmail.com');
-    setName('Eco Guardian');
-  };
-
   return (
     <div className="min-h-screen bg-[var(--eco-black)] flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="aurora-blob top-[-20%] left-[-10%] opacity-40" />
       <div className="aurora-blob bottom-[-20%] right-[-10%] opacity-20" />
       
@@ -69,6 +69,20 @@ export default function Login() {
             )}
 
             <div className="space-y-4">
+              {isSignup && (
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--eco-neon)] transition-colors" size={18} />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Guardian Name"
+                    className="w-full bg-[var(--eco-darkest)] border border-[var(--glass-border)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[var(--eco-neon)] transition-all mono text-sm text-[var(--text-primary)]"
+                    required={isSignup}
+                  />
+                </div>
+              )}
+              
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--eco-neon)] transition-colors" size={18} />
                 <input
@@ -80,14 +94,16 @@ export default function Login() {
                   required
                 />
               </div>
+
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--eco-neon)] transition-colors" size={18} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--eco-neon)] transition-colors" size={18} />
                 <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Guardian Name (Optional)"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Security Passkey"
                   className="w-full bg-[var(--eco-darkest)] border border-[var(--glass-border)] rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-[var(--eco-neon)] transition-all mono text-sm text-[var(--text-primary)]"
+                  required
                 />
               </div>
             </div>
@@ -100,23 +116,18 @@ export default function Login() {
               {isLoading ? (
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--eco-black)] border-t-transparent" />
               ) : (
-                <>Establish Link <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
+                <>{isSignup ? 'Establish Link' : 'Authenticate'} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>
               )}
             </button>
           </form>
 
-          <div className="mt-10">
-            <div className="relative flex items-center justify-center mb-8">
-              <div className="absolute w-full h-[1px] bg-[var(--glass-border)]" />
-              <span className="relative px-4 bg-[#0d1a0f] text-[10px] mono text-[var(--text-muted)] uppercase tracking-widest font-bold">Alternative Uplinks</span>
-            </div>
-
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 py-4 rounded-xl border border-[var(--glass-border)] hover:bg-white/5 transition-all text-sm font-bold text-[var(--text-secondary)]"
+          <div className="mt-8 text-center">
+            <button 
+              type="button" 
+              onClick={() => { setIsSignup(!isSignup); setError(''); }}
+              className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mono transition-colors"
             >
-              <Globe size={18} className="text-[var(--eco-mint)]" />
-              Authenticate with Google (Mock)
+              {isSignup ? "Existing Guardian? Initialize Login." : "New Guardian? Establish Link."}
             </button>
           </div>
         </div>

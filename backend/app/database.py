@@ -87,20 +87,27 @@ def init_db() -> None:
             );
             """
         )
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT ''")
+        except sqlite3.OperationalError:
+            pass
 
 
 def seed_db() -> None:
+    from app.services.auth import get_password_hash
+
     with get_db() as db:
         user_count = db.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
         if user_count:
             return
 
+        hashed = get_password_hash("password123")
         db.execute(
             """
-            INSERT INTO users (name, email, level, persona, green_points, location)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO users (name, email, password_hash, level, persona, green_points, location)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            ("Aarav", "aarav@carbonguardian.ai", 7, "Eco Warrior", 2450, "Delhi"),
+            ("Aarav", "aarav@carbonguardian.ai", hashed, 7, "Eco Warrior", 2450, "Delhi"),
         )
 
         activity_rows = [

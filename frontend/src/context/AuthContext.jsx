@@ -8,18 +8,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check initial auth state
-    const currentUser = authService.getCurrentUser();
-    if (currentUser) {
-      setUser(currentUser);
-    }
-    setLoading(false);
+    let mounted = true;
+    const initAuth = async () => {
+      const currentUser = await authService.getCurrentUser();
+      if (mounted) {
+        if (currentUser) {
+          setUser(currentUser);
+        }
+        setLoading(false);
+      }
+    };
+    initAuth();
+    return () => { mounted = false; };
   }, []);
 
-  const login = async (email, name) => {
+  const login = async (email, password) => {
     setLoading(true);
     try {
-      const loggedInUser = await authService.login(email, name);
+      const loggedInUser = await authService.login(email, password);
       setUser(loggedInUser);
       return loggedInUser;
     } finally {
@@ -27,8 +33,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    authService.logout();
+  const signup = async (name, email, password) => {
+    setLoading(true);
+    try {
+      const newUser = await authService.signup(name, email, password);
+      setUser(newUser);
+      return newUser;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    await authService.logout();
     setUser(null);
   };
 
@@ -37,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       user,
       loading,
       login,
+      signup,
       logout,
       isAuthenticated: !!user,
       isAdmin: user?.role === 'admin'
