@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.database import get_db
+from app.dependencies import get_current_user
 from app.services.recommender import RecommendationEngine
 from app.services.rewards import points_for_action
 
@@ -25,10 +26,11 @@ class FeedbackIn(BaseModel):
 
 
 @router.post("/recommend")
-def recommend(payload: RecommendIn) -> dict:
+def recommend(payload: RecommendIn, current_user: dict = Depends(get_current_user)) -> dict:
+    user_id = current_user["id"]
     with get_db() as db:
         result = RecommendationEngine(db).recommend(
-            payload.user_id,
+            user_id,
             payload.time_of_day,
             payload.location_aqi,
             payload.weather_temp,
@@ -38,27 +40,38 @@ def recommend(payload: RecommendIn) -> dict:
             INSERT INTO recommendations (user_id, prediction, recommendation, impact_percent)
             VALUES (?, ?, ?, ?)
             """,
-            (payload.user_id, result.prediction, result.recommendation, result.impact_percent),
+            (user_id, result.prediction, result.recommendation, result.impact_percent),
         )
         return {**result.__dict__, "id": cursor.lastrowid}
 
 
 @router.post("/feedback")
-def feedback(payload: FeedbackIn) -> dict:
+def feedback(payload: FeedbackIn, current_user: dict = Depends(get_current_user)) -> dict:
+    user_id = current_user["id"]
     points = points_for_action(payload.action_taken) if payload.accepted else 0
     with get_db() as db:
-        db.execute(
-            "UPDATE recommendations SET accepted = ? WHERE id = ? AND user_id = ?",
-            (1 if payload.accepted else 0, payload.recommendation_id, payload.user_id),
-        )
-        if points:
-            db.execute("INSERT INTO rewards (user_id, source, points) VALUES (?, ?, ?)", (payload.user_id, payload.action_taken, points))
-            db.execute("UPDATE users SET green_points = green_points + ? WHERE id = ?", (points, payload.user_id))
+        if payload.accepted:
+            cursor = db.execute(
+                "UPDATE recommendations SET accepted = 1 WHERE id = ? AND user_id = ? AND accepted = 0",
+                (payload.recommendation_id, user_id),
+            )
+            if cursor.rowcount > 0 and points:
+                db.execute("INSERT INTO rewards (user_id, source, points) VALUES (?, ?, ?)", (user_id, payload.action_taken, points))
+                db.execute("UPDATE users SET green_points = green_points + ? WHERE id = ?", (points, user_id))
+            else:
+                points = 0
+        else:
+            db.execute(
+                "UPDATE recommendations SET accepted = 0 WHERE id = ? AND user_id = ?",
+                (payload.recommendation_id, user_id),
+            )
+            points = 0
     return {"accepted": payload.accepted, "points_awarded": points, "retrain_signal": payload.accepted}
 
 
 @router.post("/retrain")
-def retrain(user_id: int = 1) -> dict:
+def retrain(current_user: dict = Depends(get_current_user)) -> dict:
+    user_id = current_user["id"]
     with get_db() as db:
         accepted = db.execute(
             "SELECT COUNT(*) AS count FROM recommendations WHERE user_id = ? AND accepted = 1",

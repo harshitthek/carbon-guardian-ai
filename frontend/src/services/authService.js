@@ -1,42 +1,48 @@
+const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
+
 export const authService = {
-  login: async (email, name) => {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const role = email === 'admin@carbon.ai' ? 'admin' : 'user';
-    const user = {
-      id: Math.random().toString(36).substring(7),
-      email,
-      name: name || email.split('@')[0],
-      role,
-      token: 'fake-jwt-token-' + Date.now(),
-      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${name || email}`,
-      createdAt: new Date().toISOString()
-    };
-
-    localStorage.setItem('carbon_user', JSON.stringify(user));
+  login: async (email, password) => {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error('Login failed');
+    const user = await authService.getCurrentUser();
+    if (!user) throw new Error('Failed to retrieve user session');
     return user;
   },
 
-  logout: () => {
-    localStorage.removeItem('carbon_user');
+  signup: async (name, email, password) => {
+    const res = await fetch(`${API_BASE}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+      credentials: 'include'
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.detail || 'Signup failed');
+    }
+    const user = await authService.getCurrentUser();
+    if (!user) throw new Error('Failed to retrieve user session');
+    return user;
   },
 
-  getCurrentUser: () => {
+  logout: async () => {
+    const res = await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+    if (!res.ok) throw new Error('Logout failed');
+  },
+
+  getCurrentUser: async () => {
     try {
-      const user = localStorage.getItem('carbon_user');
-      return user ? JSON.parse(user) : null;
+      const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
+      if (!res.ok) return null;
+      const user = await res.json();
+      return user;
     } catch {
       return null;
     }
-  },
-
-  isAuthenticated: () => {
-    return !!localStorage.getItem('carbon_user');
-  },
-
-  isAdmin: () => {
-    const user = authService.getCurrentUser();
-    return user?.role === 'admin';
   }
 };

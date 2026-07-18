@@ -116,10 +116,18 @@ async function request(path, options = {}) {
     throw new Error(`Mock endpoint not found: ${path}`);
   }
 
+  options.credentials = 'include';
   const response = await fetch(`${API_BASE}${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
+
+  if (response.status === 401) {
+    if (window.location.pathname !== '/login') {
+      window.location.href = '/login';
+    }
+    throw new Error('Unauthorized');
+  }
 
   if (!response.ok) {
     throw new Error(`Request failed: ${response.status}`);

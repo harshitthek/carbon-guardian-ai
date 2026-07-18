@@ -30,7 +30,8 @@ def init_db() -> None:
                 level INTEGER NOT NULL DEFAULT 1,
                 persona TEXT NOT NULL DEFAULT 'Eco Warrior',
                 green_points INTEGER NOT NULL DEFAULT 0,
-                location TEXT NOT NULL DEFAULT 'Delhi'
+                location TEXT NOT NULL DEFAULT 'Delhi',
+                role TEXT NOT NULL DEFAULT 'user'
             );
 
             CREATE TABLE IF NOT EXISTS user_activity (
@@ -87,20 +88,35 @@ def init_db() -> None:
             );
             """
         )
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT '!RESET_REQUIRED'")
+        except sqlite3.OperationalError:
+            pass
+        try:
+            db.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
+        except sqlite3.OperationalError:
+            pass
 
 
 def seed_db() -> None:
+    import os
+    if os.environ.get("ENVIRONMENT") == "production":
+        return
+
+    from app.services.auth import get_password_hash
+
     with get_db() as db:
         user_count = db.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
         if user_count:
             return
 
+        hashed = get_password_hash("password123")
         db.execute(
             """
-            INSERT INTO users (name, email, level, persona, green_points, location)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO users (name, email, password_hash, role, level, persona, green_points, location)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            ("Aarav", "aarav@carbonguardian.ai", 7, "Eco Warrior", 2450, "Delhi"),
+            ("Aarav", "aarav@carbonguardian.ai", hashed, "admin", 7, "Eco Warrior", 2450, "Delhi"),
         )
 
         activity_rows = [
