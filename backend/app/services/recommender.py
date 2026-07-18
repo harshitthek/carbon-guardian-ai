@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from sqlite3 import Connection
+from sqlalchemy.orm import Session
+from app.models import UserActivity
 
 from app.services.emissions import reduction_percent
 
@@ -20,6 +21,7 @@ ECO_ALTERNATIVES = {
 
 @dataclass
 class RecommendationResult:
+    """Dataclass holding the result of a personalized recommendation."""
     prediction: str
     recommendation: str
     impact_percent: int
@@ -28,7 +30,9 @@ class RecommendationResult:
 
 
 class BehaviorRankingModel:
+    """Fallback ranking model based on user activity frequencies."""
     def __init__(self, rows: list[dict]) -> None:
+        """Initialize the model with a user's activity history."""
         self.hour_mode_counts: dict[int, Counter[str]] = defaultdict(Counter)
         self.global_counts: Counter[str] = Counter()
         self.feedback_boosts: Counter[str] = Counter()
@@ -39,6 +43,7 @@ class BehaviorRankingModel:
             self.global_counts[mode] += 1
 
     def predict_mode(self, hour: int) -> tuple[str, float]:
+        """Predict the user's likely transport mode for a given hour."""
         bucket = hour // 3
         counts = self.hour_mode_counts.get(bucket) or self.global_counts
         if not counts:
@@ -48,6 +53,7 @@ class BehaviorRankingModel:
         return mode, round(count / total, 2)
 
     def best_alternative(self, predicted_mode: str, aqi: int, weather_temp: float) -> str:
+        """Suggest an eco-friendly alternative based on predicted mode and weather."""
         if predicted_mode in {"cab", "car"} and aqi >= 110:
             return "metro"
         if weather_temp <= 31 and predicted_mode in {"metro", "bus"}:
@@ -56,16 +62,28 @@ class BehaviorRankingModel:
 
 
 class RecommendationEngine:
-    def __init__(self, db: Connection) -> None:
+    """Orchestrates generating recommendations using TFRS or the fallback model."""
+    def __init__(self, db: Session) -> None:
+        """Initialize the RecommendationEngine with a database session."""
         self.db = db
 
     def recommend(self, user_id: int, time_of_day: int, location_aqi: int, weather_temp: float) -> RecommendationResult:
+        """Generate a personalized recommendation for the user's next action."""
+        activities = self.db.query(UserActivity).filter(UserActivity.user_id == user_id).order_by(UserActivity.created_at.desc()).limit(250).all()
         rows = [
-            dict(row)
-            for row in self.db.execute(
-                "SELECT * FROM user_activity WHERE user_id = ? ORDER BY created_at DESC LIMIT 250",
-                (user_id,),
-            ).fetchall()
+            {
+                "id": a.id,
+                "user_id": a.user_id,
+                "action": a.action,
+                "transport_mode": a.transport_mode,
+                "electricity_kwh": a.electricity_kwh,
+                "waste_kg": a.waste_kg,
+                "time_of_day": a.time_of_day,
+                "location_aqi": a.location_aqi,
+                "weather_temp": a.weather_temp,
+                "created_at": str(a.created_at)
+            }
+            for a in activities
         ]
 
         try:

@@ -15,6 +15,7 @@ WASTE_FACTOR_KG_PER_KG = 0.57
 
 
 def calculate_emission(transport_mode: str, distance_km: float, electricity_kwh: float, waste_kg: float) -> dict:
+    """Calculate the total carbon emissions based on user inputs."""
     mode = transport_mode.lower()
     transport_kg = distance_km * TRANSPORT_FACTORS.get(mode, TRANSPORT_FACTORS["car"])
     electricity_kg = electricity_kwh * ELECTRICITY_FACTOR_KG_PER_KWH
@@ -30,6 +31,7 @@ def calculate_emission(transport_mode: str, distance_km: float, electricity_kwh:
 
 
 def reduction_percent(current_mode: str, recommended_mode: str) -> int:
+    """Calculate the percentage reduction in emissions by switching modes."""
     current = TRANSPORT_FACTORS.get(current_mode.lower(), TRANSPORT_FACTORS["car"])
     better = TRANSPORT_FACTORS.get(recommended_mode.lower(), current)
     if current <= 0:

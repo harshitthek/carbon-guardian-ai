@@ -1,166 +1,35 @@
 from __future__ import annotations
 
-import sqlite3
+import os
 from contextlib import contextmanager
-from pathlib import Path
 from typing import Iterator
 
-DB_PATH = Path(__file__).resolve().parent.parent / "carbon_guardian.db"
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import sessionmaker, Session
 
+# Fallback to local SQLite if DATABASE_URL is not provided
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///carbon_guardian.db")
 
-@contextmanager
-def get_db() -> Iterator[sqlite3.Connection]:
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+# connect_args={"check_same_thread": False} is required for SQLite in FastAPI
+engine_kwargs = {}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
+
+if DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(Engine, "connect")
+    def set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db() -> Iterator[Session]:
+    """Yield a database session for use in FastAPI dependency injection."""
+    db = SessionLocal()
     try:
-        yield conn
-        conn.commit()
+        yield db
     finally:
-        conn.close()
-
-
-def init_db() -> None:
-    with get_db() as db:
-        db.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT UNIQUE NOT NULL,
-                level INTEGER NOT NULL DEFAULT 1,
-                persona TEXT NOT NULL DEFAULT 'Eco Warrior',
-                green_points INTEGER NOT NULL DEFAULT 0,
-                location TEXT NOT NULL DEFAULT 'Delhi',
-                role TEXT NOT NULL DEFAULT 'user'
-            );
-
-            CREATE TABLE IF NOT EXISTS user_activity (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                action TEXT NOT NULL,
-                transport_mode TEXT,
-                electricity_kwh REAL DEFAULT 0,
-                waste_kg REAL DEFAULT 0,
-                time_of_day INTEGER NOT NULL,
-                location_aqi INTEGER NOT NULL,
-                weather_temp REAL NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            );
-
-            CREATE TABLE IF NOT EXISTS emissions_log (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                transport_kg REAL NOT NULL,
-                electricity_kg REAL NOT NULL,
-                waste_kg REAL NOT NULL,
-                total_kg REAL NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            );
-
-            CREATE TABLE IF NOT EXISTS recommendations (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                prediction TEXT NOT NULL,
-                recommendation TEXT NOT NULL,
-                impact_percent INTEGER NOT NULL,
-                accepted INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            );
-
-            CREATE TABLE IF NOT EXISTS rewards (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                source TEXT NOT NULL,
-                points INTEGER NOT NULL,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            );
-
-            CREATE TABLE IF NOT EXISTS community_groups (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                weekly_reduction_kg REAL NOT NULL,
-                rank INTEGER NOT NULL,
-                members INTEGER NOT NULL
-            );
-            """
-        )
-        try:
-            db.execute("ALTER TABLE users ADD COLUMN password_hash TEXT NOT NULL DEFAULT '!RESET_REQUIRED'")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            db.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
-        except sqlite3.OperationalError:
-            pass
-
-
-def seed_db() -> None:
-    import os
-    if os.environ.get("ENVIRONMENT") == "production":
-        return
-
-    from app.services.auth import get_password_hash
-
-    with get_db() as db:
-        user_count = db.execute("SELECT COUNT(*) AS count FROM users").fetchone()["count"]
-        if user_count:
-            return
-
-        hashed = get_password_hash("password123")
-        db.execute(
-            """
-            INSERT INTO users (name, email, password_hash, role, level, persona, green_points, location)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            ("Aarav", "aarav@carbonguardian.ai", hashed, "admin", 7, "Eco Warrior", 2450, "Delhi"),
-        )
-
-        activity_rows = [
-            (1, "commute", "cab", 2.4, 0.2, 9, 132, 33),
-            (1, "commute", "metro", 2.1, 0.1, 10, 118, 32),
-            (1, "food", "walk", 1.6, 0.4, 13, 124, 34),
-            (1, "commute", "cab", 3.1, 0.2, 17, 145, 31),
-            (1, "errand", "cycling", 1.2, 0.1, 18, 152, 30),
-            (1, "commute", "cab", 2.8, 0.2, 17, 138, 31),
-            (1, "home_energy", "none", 4.6, 0.3, 20, 126, 29),
-            (1, "commute", "metro", 2.0, 0.1, 17, 141, 31),
-        ]
-        db.executemany(
-            """
-            INSERT INTO user_activity
-            (user_id, action, transport_mode, electricity_kwh, waste_kg, time_of_day, location_aqi, weather_temp)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            activity_rows,
-        )
-
-        emissions = [
-            (1, 14.1, 3.9, 1.4, 19.4),
-            (1, 8.6, 3.2, 1.2, 13.0),
-            (1, 12.4, 3.6, 1.2, 17.2),
-        ]
-        db.executemany(
-            """
-            INSERT INTO emissions_log (user_id, transport_kg, electricity_kg, waste_kg, total_kg)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            emissions,
-        )
-
-        db.executemany(
-            "INSERT INTO rewards (user_id, source, points) VALUES (?, ?, ?)",
-            [(1, "Used Metro", 50), (1, "Switched to LED", 30), (1, "Avoided Plastic", 40), (1, "Cycling", 60)],
-        )
-
-        db.executemany(
-            "INSERT INTO community_groups (name, weekly_reduction_kg, rank, members) VALUES (?, ?, ?, ?)",
-            [
-                ("Your College Community", 120, 3, 238),
-                ("North Campus Climate Club", 94, 5, 119),
-                ("Green Delhi Riders", 156, 1, 306),
-            ],
-        )
+        db.close()

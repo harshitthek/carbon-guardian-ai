@@ -7,7 +7,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import init_db, seed_db
 from app.routes import ai, community, emission, environment, simulation, user, auth
 
 app = FastAPI(title="Carbon Guardian AI", version="1.0.0")
@@ -22,19 +21,15 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-def startup() -> None:
-    init_db()
-    seed_db()
-
-
 @app.get("/health")
 def health() -> dict:
+    """Return the health status of the API."""
     return {"status": "ok", "service": "Carbon Guardian AI"}
 
 
 @app.get("/", include_in_schema=False)
 def dashboard() -> FileResponse:
+    """Serve the React frontend static dashboard."""
     return FileResponse(STATIC_DIR / "index.html")
 
 
