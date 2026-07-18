@@ -18,6 +18,7 @@ class CarbonTFRSModel:
         self.actions = tf.constant(["take cab", "take metro", "cycle", "walk", "take bus"])
 
     def rank(self, features: dict) -> list[str]:
+        """Rank possible actions based on environmental features."""
         hour = int(features.get("time_of_day", 12))
         aqi = int(features.get("location_aqi", 100))
         if aqi > 125 and 16 <= hour <= 20:

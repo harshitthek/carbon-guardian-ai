@@ -10,6 +10,7 @@ from app.services.auth import get_password_hash
 
 
 def seed_db():
+    """Seed the database with initial user and community data for development."""
     db = SessionLocal()
     try:
         user_count = db.query(User).count()

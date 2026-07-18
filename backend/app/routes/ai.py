@@ -14,6 +14,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 class RecommendIn(BaseModel):
+    """Payload for requesting AI recommendations."""
     user_id: int = 1
     time_of_day: int
     location_aqi: int
@@ -21,6 +22,7 @@ class RecommendIn(BaseModel):
 
 
 class FeedbackIn(BaseModel):
+    """Payload for providing feedback on AI recommendations."""
     user_id: int = 1
     recommendation_id: int
     accepted: bool
@@ -29,6 +31,7 @@ class FeedbackIn(BaseModel):
 
 @router.post("/recommend")
 def recommend(payload: RecommendIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Generate a personalized eco-friendly transport recommendation."""
     user_id = current_user.id
     result = RecommendationEngine(db).recommend(
         user_id,
@@ -50,6 +53,7 @@ def recommend(payload: RecommendIn, current_user: User = Depends(get_current_use
 
 @router.post("/feedback")
 def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Submit user feedback for a given recommendation and reward points if accepted."""
     user_id = current_user.id
     points = points_for_action(payload.action_taken) if payload.accepted else 0
     if payload.accepted:
@@ -73,6 +77,7 @@ def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user)
 
 @router.post("/retrain")
 def retrain(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Trigger retraining of the AI recommendation engine."""
     user_id = current_user.id
     accepted = db.query(Recommendation).filter(Recommendation.user_id == user_id, Recommendation.accepted == 1).count()
     history = db.query(UserActivity).filter(UserActivity.user_id == user_id).count()

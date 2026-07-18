@@ -13,6 +13,7 @@ from app.models import CommunityGroup, User
 
 @router.get("/leaderboard")
 def leaderboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Fetch the community leaderboard rankings."""
     rows = db.query(CommunityGroup).order_by(CommunityGroup.rank.asc()).all()
     return {"groups": [{
         "id": row.id,

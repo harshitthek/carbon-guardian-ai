@@ -11,4 +11,5 @@ ACTION_POINTS = {
 
 
 def points_for_action(action: str) -> int:
+    """Get the number of green points awarded for a specific eco-friendly action."""
     return ACTION_POINTS.get(action.lower(), 20)

@@ -6,10 +6,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
+    """Base class for all SQLAlchemy declarative models."""
     pass
 
 
 class User(Base):
+    """Represents a user in the Carbon Guardian AI system."""
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -29,6 +31,7 @@ class User(Base):
 
 
 class UserActivity(Base):
+    """Logs individual activities performed by users."""
     __tablename__ = "user_activity"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -46,6 +49,7 @@ class UserActivity(Base):
 
 
 class EmissionsLog(Base):
+    """Records calculated carbon emissions for a given user activity."""
     __tablename__ = "emissions_log"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -60,6 +64,7 @@ class EmissionsLog(Base):
 
 
 class Recommendation(Base):
+    """Stores AI-generated recommendations and user feedback."""
     __tablename__ = "recommendations"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -74,6 +79,7 @@ class Recommendation(Base):
 
 
 class Reward(Base):
+    """Tracks green points and rewards awarded to users."""
     __tablename__ = "rewards"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -86,6 +92,7 @@ class Reward(Base):
 
 
 class CommunityGroup(Base):
+    """Represents a community group for leaderboard rankings."""
     __tablename__ = "community_groups"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

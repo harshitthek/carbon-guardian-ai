@@ -22,6 +22,7 @@ SCENARIOS = {
 }
 
 def run_simulation(ev: int, solar: int, plastic: int) -> dict:
+    """Run an environmental simulation using projected EV, solar, and plastic recovery rates."""
     co2_reduced = (ev * 93333) + (solar * 108000) + (plastic * 17000)
     aqi_improvement = (ev * 0.6) + (solar * 0.5) + (plastic * 0.1)
     temp_reduction = (ev * 0.02) + (solar * 0.024) + (plastic * 0.002)

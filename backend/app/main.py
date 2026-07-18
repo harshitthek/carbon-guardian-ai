@@ -23,11 +23,13 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict:
+    """Return the health status of the API."""
     return {"status": "ok", "service": "Carbon Guardian AI"}
 
 
 @app.get("/", include_in_schema=False)
 def dashboard() -> FileResponse:
+    """Serve the React frontend static dashboard."""
     return FileResponse(STATIC_DIR / "index.html")
 
 

@@ -16,6 +16,7 @@ router = APIRouter(prefix="/user", tags=["user"])
 
 
 class ActivityIn(BaseModel):
+    """Payload for submitting a new user activity."""
     user_id: int = 1
     action: str
     transport_mode: str = "none"
@@ -28,6 +29,7 @@ class ActivityIn(BaseModel):
 
 @router.get("/profile")
 def profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Retrieve the user's profile, footprint breakdown, and recent rewards."""
     user_id = current_user.id
     user_dict = {
         "id": current_user.id,
@@ -86,6 +88,7 @@ def profile(current_user: User = Depends(get_current_user), db: Session = Depend
 
 @router.get("/activity")
 def activity(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Fetch the recent activity log for the current user."""
     user_id = current_user.id
     rows = db.query(UserActivity).filter(UserActivity.user_id == user_id).order_by(UserActivity.created_at.desc()).limit(20).all()
     return {"items": [{
@@ -103,6 +106,7 @@ def activity(current_user: User = Depends(get_current_user), db: Session = Depen
 
 @router.post("/activity")
 def add_activity(payload: ActivityIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
+    """Record a new activity for the current user."""
     user_id = current_user.id
     activity = UserActivity(
         user_id=user_id,

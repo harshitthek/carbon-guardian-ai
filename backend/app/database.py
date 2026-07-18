@@ -19,6 +19,7 @@ engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def get_db() -> Iterator[Session]:
+    """Yield a database session for use in FastAPI dependency injection."""
     db = SessionLocal()
     try:
         yield db
