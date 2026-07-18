@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import List, Optional
 
 from datetime import datetime, timedelta
 
@@ -17,19 +18,63 @@ router = APIRouter(prefix="/user", tags=["user"])
 
 class ActivityIn(BaseModel):
     """Payload for submitting a new user activity."""
-    user_id: int = 1
+    action: str = Field(..., description="Type of action, e.g., 'commute', 'appliance'")
+    transport_mode: str = Field("none", description="Mode of transport if applicable")
+    electricity_kwh: float = Field(0, description="Electricity usage in kWh", ge=0)
+    waste_kg: float = Field(0, description="Waste generated in kg", ge=0)
+    time_of_day: int = Field(..., description="Hour of the day (0-23)", ge=0, le=23)
+    location_aqi: int = Field(..., description="Current Air Quality Index", ge=0)
+    weather_temp: float = Field(..., description="Current temperature in Celsius")
+
+class RewardOut(BaseModel):
+    id: int
+    source: str
+    points: int
+    date: datetime
+
+class FootprintBreakdown(BaseModel):
+    name: str
+    value: float
+    fill: str
+
+class WeeklyTrend(BaseModel):
+    day: str
+    co2: float
+
+class ProfileOut(BaseModel):
+    id: int = Field(..., description="User ID")
+    name: str = Field(..., description="User's full name")
+    email: str = Field(..., description="User's email address")
+    level: int = Field(..., description="Gamification level")
+    persona: str = Field(..., description="User's eco-persona title")
+    role: str = Field(..., description="User role (e.g. admin, user)")
+    green_points: int = Field(..., description="Total accumulated Green Points")
+    location: str | None = Field(None, description="User's city or location")
+    recent_rewards: List[RewardOut] = Field(..., description="Last 6 rewards earned")
+    footprint_breakdown: List[FootprintBreakdown] = Field(..., description="Pie chart data for footprint")
+    weekly_trend: List[WeeklyTrend] = Field(..., description="Bar chart data for past 7 days of emissions")
+
+class ActivityItem(BaseModel):
+    id: int
     action: str
-    transport_mode: str = "none"
-    electricity_kwh: float = 0
-    waste_kg: float = 0
+    transport_mode: str
+    electricity_kwh: float
+    waste_kg: float
     time_of_day: int
     location_aqi: int
     weather_temp: float
+    created_at: datetime
+
+class ActivityLogOut(BaseModel):
+    items: List[ActivityItem]
+
+class ActivityResponse(BaseModel):
+    status: str
 
 
-@router.get("/profile")
-def profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
-    """Retrieve the user's profile, footprint breakdown, and recent rewards."""
+@router.get("/profile", response_model=ProfileOut, summary="Get User Profile")
+def profile(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Retrieve the authenticated user's profile, footprint breakdown, and recent rewards."""
     user_id = current_user.id
     user_dict = {
         "id": current_user.id,
@@ -87,9 +132,9 @@ def profile(current_user: User = Depends(get_current_user), db: Session = Depend
     }
 
 
-@router.get("/activity")
-def activity(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
-    """Fetch the recent activity log for the current user."""
+@router.get("/activity", response_model=ActivityLogOut, summary="Get User Activity Log")
+def activity(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Fetch the recent activity log for the current authenticated user."""
     user_id = current_user.id
     rows = db.query(UserActivity).filter(UserActivity.user_id == user_id).order_by(UserActivity.created_at.desc()).limit(20).all()
     return {"items": [{
@@ -105,9 +150,9 @@ def activity(current_user: User = Depends(get_current_user), db: Session = Depen
     } for row in rows]}
 
 
-@router.post("/activity")
-def add_activity(payload: ActivityIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
-    """Record a new activity for the current user."""
+@router.post("/activity", response_model=ActivityResponse, summary="Record User Activity")
+def add_activity(payload: ActivityIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Record a new eco-activity for the current user and evaluate points/emissions."""
     user_id = current_user.id
     activity = UserActivity(
         user_id=user_id,

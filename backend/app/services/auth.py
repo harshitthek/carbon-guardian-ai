@@ -1,15 +1,17 @@
+from __future__ import annotations
+
+import os
 from datetime import datetime, timedelta
 from typing import Any, Union
 
 import jwt
 from passlib.context import CryptContext
 
+from app.config import settings
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-import os
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("JWT_SECRET_KEY environment variable is not set")
+SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 7
 

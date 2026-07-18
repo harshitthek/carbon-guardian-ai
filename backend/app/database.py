@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-import os
-from contextlib import contextmanager
 from typing import Iterator
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session
 
-# Fallback to local SQLite if DATABASE_URL is not provided
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///carbon_guardian.db")
+from app.config import settings
+
+DATABASE_URL = settings.DATABASE_URL
 
 # connect_args={"check_same_thread": False} is required for SQLite in FastAPI
 engine_kwargs = {}

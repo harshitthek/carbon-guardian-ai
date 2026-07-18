@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.services.emissions import calculate_emission
+from app.models import EmissionsLog, User
+from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/emission", tags=["emission"])
 
@@ -16,10 +19,6 @@ class EmissionIn(BaseModel):
     electricity_kwh: float
     waste_kg: float
 
-
-from sqlalchemy.orm import Session
-from app.models import EmissionsLog, User
-from app.dependencies import get_current_user
 
 @router.post("/calculate")
 def calculate(payload: EmissionIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
