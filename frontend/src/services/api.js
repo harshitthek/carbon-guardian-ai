@@ -202,7 +202,15 @@ export const api = {
   liveEnvironment: () => request("/environment/live?location=Delhi"),
   
   /** @returns {Promise<CommunityGroup[]>} */
-  leaderboard: () => request("/community/leaderboard").then(res => res.groups || res),
+  leaderboard: () => request("/community/leaderboard").then(res => {
+    const groups = res.groups || res;
+    return groups.map(g => ({
+      ...g,
+      score: g.score ?? g.weekly_reduction_kg ?? g.total_points ?? 0,
+      avatar: g.avatar || "🌱"
+    }));
+  }),
+
   /** @returns {Promise<MarketplaceItem[]>} */
   marketplace: () => request("/marketplace"),
   
