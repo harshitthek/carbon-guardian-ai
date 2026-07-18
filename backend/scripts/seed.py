@@ -18,7 +18,13 @@ def seed_db():
             print("Database already seeded. Skipping.")
             return
 
-        hashed = get_password_hash("password123")
+        import os
+        seed_pass = os.environ.get("SEED_ADMIN_PASSWORD")
+        if not seed_pass:
+            print("SEED_ADMIN_PASSWORD environment variable is not set. Aborting seed.")
+            return
+
+        hashed = get_password_hash(seed_pass)
         admin = User(
             name="Aarav",
             email="aarav@carbonguardian.ai",
@@ -30,8 +36,7 @@ def seed_db():
             location="Delhi",
         )
         db.add(admin)
-        db.commit()
-        db.refresh(admin)
+        db.flush()
 
         activities = [
             UserActivity(user_id=admin.id, action="commute", transport_mode="cab", electricity_kwh=2.4, waste_kg=0.2, time_of_day=9, location_aqi=132, weather_temp=33),
@@ -70,6 +75,9 @@ def seed_db():
         db.commit()
         print("Database seeded successfully.")
 
+    except Exception as e:
+        db.rollback()
+        print(f"Seeding failed: {e}")
     finally:
         db.close()
 

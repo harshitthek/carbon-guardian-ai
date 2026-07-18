@@ -11,7 +11,6 @@ router = APIRouter(prefix="/emission", tags=["emission"])
 
 class EmissionIn(BaseModel):
     """Payload for calculating emissions from an activity."""
-    user_id: int = 1
     transport_mode: str
     distance_km: float
     electricity_kwh: float
@@ -19,10 +18,11 @@ class EmissionIn(BaseModel):
 
 
 from sqlalchemy.orm import Session
-from app.models import EmissionsLog
+from app.models import EmissionsLog, User
+from app.dependencies import get_current_user
 
 @router.post("/calculate")
-def calculate(payload: EmissionIn, db: Session = Depends(get_db)) -> dict:
+def calculate(payload: EmissionIn, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
     """Calculate and log carbon emissions for the specified activity."""
     result = calculate_emission(
         payload.transport_mode,
@@ -31,7 +31,7 @@ def calculate(payload: EmissionIn, db: Session = Depends(get_db)) -> dict:
         payload.waste_kg,
     )
     log = EmissionsLog(
-        user_id=payload.user_id,
+        user_id=current_user.id,
         transport_kg=result["transport_kg"],
         electricity_kg=result["electricity_kg"],
         waste_kg=result["waste_kg"],

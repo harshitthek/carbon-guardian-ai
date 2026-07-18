@@ -32,8 +32,13 @@ def signup(payload: SignupRequest, response: Response, db: Session = Depends(get
     hashed = get_password_hash(payload.password)
     new_user = User(name=payload.name, email=payload.email, password_hash=hashed)
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    from sqlalchemy.exc import IntegrityError
+    try:
+        db.commit()
+        db.refresh(new_user)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Email already registered")
         
     access_token = create_access_token(subject=new_user.id)
     response.set_cookie(

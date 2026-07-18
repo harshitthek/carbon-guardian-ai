@@ -57,20 +57,27 @@ def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user)
     user_id = current_user.id
     points = points_for_action(payload.action_taken) if payload.accepted else 0
     if payload.accepted:
-        rec = db.query(Recommendation).filter(Recommendation.id == payload.recommendation_id, Recommendation.user_id == user_id, Recommendation.accepted == 0).first()
-        if rec and points:
-            rec.accepted = 1
-            reward = Reward(user_id=user_id, source=payload.action_taken, points=points)
+        updated_count = db.query(Recommendation).filter(
+            Recommendation.id == payload.recommendation_id, 
+            Recommendation.user_id == user_id, 
+            Recommendation.accepted == 0
+        ).update({"accepted": 1})
+        
+        if updated_count > 0 and points:
+            reward = Reward(
+                user_id=user_id, 
+                source=payload.action_taken, 
+                points=points,
+                recommendation_id=payload.recommendation_id
+            )
             db.add(reward)
             current_user.green_points += points
             db.commit()
         else:
             points = 0
+            db.rollback()
     else:
-        rec = db.query(Recommendation).filter(Recommendation.id == payload.recommendation_id, Recommendation.user_id == user_id).first()
-        if rec:
-            rec.accepted = 0
-            db.commit()
+        # Rejection path: do not reset accepted to 0, treat as no-op.
         points = 0
     return {"accepted": payload.accepted, "points_awarded": points, "retrain_signal": payload.accepted}
 
