@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes import ai, community, emission, environment, simulation, user, auth
+from app.routes import ai, community, emission, environment, simulation, user, auth, marketplace
 
 app = FastAPI(title="Carbon Guardian AI", version="1.0.0")
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -40,4 +40,5 @@ app.include_router(ai.router)
 app.include_router(community.router)
 app.include_router(simulation.router)
 app.include_router(environment.router)
+app.include_router(marketplace.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

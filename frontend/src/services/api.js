@@ -6,16 +6,16 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const mockData = {
   profile: {
     id: 1,
-    name: "Aarav",
+    name: "Aarav (ex)",
     level: 7,
-    persona: "Eco Warrior",
+    persona: "Eco Warrior (ex)",
     green_points: 2450,
     daily_footprint_kg: 12.4,
     recent_rewards: [
-      { id: 1, source: "Used Metro", points: 50, date: "2023-10-25" },
-      { id: 2, source: "Switched to LED", points: 30, date: "2023-10-24" },
-      { id: 3, source: "Avoided Plastic", points: 40, date: "2023-10-23" },
-      { id: 4, source: "Cycling", points: 60, date: "2023-10-22" },
+      { id: 1, source: "Used Metro (ex)", points: 50, date: "2023-10-25" },
+      { id: 2, source: "Switched to LED (ex)", points: 30, date: "2023-10-24" },
+      { id: 3, source: "Avoided Plastic (ex)", points: 40, date: "2023-10-23" },
+      { id: 4, source: "Cycling (ex)", points: 60, date: "2023-10-22" },
     ],
     footprint_breakdown: [
       { name: "Transport", value: 45, fill: "#10b981" },
@@ -37,23 +37,26 @@ const mockData = {
     aqi: 118,
     co2_ppm: 412,
     temperature_c: 32,
-    city: "Delhi",
+    city: "Delhi (ex)",
     trees_equivalent: 14
   },
   recommendation: {
     id: 101,
-    prediction: "You will likely take a cab around 17:00.",
-    recommendation: "Take the metro instead to save 2.4kg of CO₂.",
+    prediction: "You will likely take a cab around 17:00. (ex)",
+    recommendation: "Take the metro instead to save 2.4kg of CO₂. (ex)",
     impact_percent: 63,
     confidence: 0.88,
-    type: "transport"
+    type: "transport",
+    model: "mock-fallback",
+    fallback_reason: "Backend offline or mock mode enabled",
+    latency_ms: 15
   },
   leaderboard: [
-    { rank: 1, name: "Eco Innovators", score: 14500, avatar: "🌍" },
-    { rank: 2, name: "Green Tech Club", score: 13200, avatar: "⚡" },
-    { rank: 3, name: "Your Community", score: 12800, avatar: "🌳" },
-    { rank: 4, name: "Earth Saviors", score: 11050, avatar: "🛡️" },
-    { rank: 5, name: "Zero Waste Squad", score: 9800, avatar: "♻️" },
+    { rank: 1, name: "Eco Innovators (ex)", score: 14500, avatar: "🌍" },
+    { rank: 2, name: "Green Tech Club (ex)", score: 13200, avatar: "⚡" },
+    { rank: 3, name: "Your Community (ex)", score: 12800, avatar: "🌳" },
+    { rank: 4, name: "Earth Saviors (ex)", score: 11050, avatar: "🛡️" },
+    { rank: 5, name: "Zero Waste Squad (ex)", score: 9800, avatar: "♻️" },
   ],
   scenarios: {
     "ev_adoption_30": {
@@ -61,28 +64,28 @@ const mockData = {
       co2_reduced_kg: 2800000,
       aqi_improvement_percent: 18,
       temp_reduction_c: 0.6,
-      description: "30% of users switch to Electric Vehicles"
+      description: "30% of users switch to Electric Vehicles (ex)"
     },
     "solar_grid_50": {
       scenario_id: "solar_grid_50",
       co2_reduced_kg: 5400000,
       aqi_improvement_percent: 25,
       temp_reduction_c: 1.2,
-      description: "50% of community grid powered by Solar"
+      description: "50% of community grid powered by Solar (ex)"
     },
     "zero_plastic_week": {
       scenario_id: "zero_plastic_week",
       co2_reduced_kg: 850000,
       aqi_improvement_percent: 5,
       temp_reduction_c: 0.1,
-      description: "Community-wide ban on single-use plastics for 1 week"
+      description: "Community-wide ban on single-use plastics for 1 week (ex)"
     }
   },
   marketplace: [
-    { id: 1, title: "Tree Plantation Drive", category: "Volunteer", points: 200, icon: "🌳" },
-    { id: 2, title: "Solar Fund Donation", category: "Donate", points: 500, icon: "☀️" },
-    { id: 3, title: "Weekend Beach Cleanup", category: "Action", points: 300, icon: "🏖️" },
-    { id: 4, title: "Composting Workshop", category: "Learn", points: 100, icon: "🍂" },
+    { id: 1, title: "Tree Plantation Drive (ex)", category: "Volunteer", points: 200, icon: "🌳" },
+    { id: 2, title: "Solar Fund Donation (ex)", category: "Donate", points: 500, icon: "☀️" },
+    { id: 3, title: "Weekend Beach Cleanup (ex)", category: "Action", points: 300, icon: "🏖️" },
+    { id: 4, title: "Composting Workshop (ex)", category: "Learn", points: 100, icon: "🍂" },
   ]
 };
 
@@ -90,10 +93,9 @@ const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
 const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'; // Set to false to hit the real backend
 
 async function request(path, options = {}) {
-  if (USE_MOCKS) {
-    await delay(600); // Simulate network latency
-
-    // Simple mock router
+  options.credentials = 'include';
+  
+  const getMockFallback = () => {
     if (path.includes("/user/profile")) return mockData.profile;
     if (path.includes("/environment/live")) return mockData.environment;
     if (path.includes("/community/leaderboard")) return mockData.leaderboard;
@@ -103,37 +105,53 @@ async function request(path, options = {}) {
       const p = JSON.parse(options.body || "{}");
       return {
         scenario_id: "mock_scenario",
-        description: `Mock Projection: ${p.ev||30}% EV, ${p.solar||20}% Solar, ${p.plastic||50}% Plastic`,
+        description: `Mock Projection: ${p.ev||30}% EV, ${p.solar||20}% Solar, ${p.plastic||50}% Plastic (ex)`,
         co2_reduced_kg: 2500000,
         aqi_improvement_percent: 15,
         temp_reduction_c: 0.5
       };
     }
-
-    // Simulate successful post
-    if (options.method === "POST") return { success: true };
-
-    throw new Error(`Mock endpoint not found: ${path}`);
+    return null;
+  };
+  
+  if (USE_MOCKS) {
+    await delay(300);
+    const mock = getMockFallback();
+    if (mock) return mock;
+    throw new Error(`Request failed (MOCK MODE): No mock defined for ${path}`);
   }
 
-  options.credentials = 'include';
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      headers: { "Content-Type": "application/json" },
+      ...options,
+    });
 
-  if (response.status === 401) {
-    if (window.location.pathname !== '/login') {
-      window.location.href = '/login';
+    if (response.status === 401) {
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      throw new Error('Unauthorized');
     }
-    throw new Error('Unauthorized');
-  }
 
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
 
-  return response.json();
+    return await response.json();
+  } catch (error) {
+    if (error.message === 'Unauthorized') throw error;
+    
+    console.warn(`[API Fallback] Backend fetch failed for ${path}. Using mock data... Error:`, error);
+    
+    const mock = getMockFallback();
+    if (mock) {
+      await delay(300); // Simulate brief network delay before fallback
+      return mock;
+    }
+    
+    throw error;
+  }
 }
 
 /**
