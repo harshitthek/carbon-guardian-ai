@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
+import logging
+import time
+
 from sqlalchemy.orm import Session
 from app.models import UserActivity
 
@@ -18,6 +21,8 @@ ECO_ALTERNATIVES = {
     "none": "metro",
 }
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class RecommendationResult:
@@ -27,6 +32,8 @@ class RecommendationResult:
     impact_percent: int
     confidence: float
     model: str
+    latency_ms: float
+    fallback_reason: str | None = None
 
 
 class BehaviorRankingModel:
@@ -86,6 +93,9 @@ class RecommendationEngine:
             for a in activities
         ]
 
+        fallback_reason = None
+        start_time = time.perf_counter()
+        
         try:
             from app.ml.tfrs_model import CarbonTFRSModel
 
@@ -101,11 +111,18 @@ class RecommendationEngine:
             predicted, confidence = learned.predict_mode(time_of_day)
             recommendation = ranked[0].replace("take ", "")
             model = "tensorflow-recommenders-ranking"
-        except Exception:
+            latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
+            logger.info(f"Generated TFRS recommendation in {latency_ms}ms")
+            
+        except ImportError as e:
+            logger.warning("Falling back to sqlite-behavior-ranking due to ImportError: %s", e)
+            fallback_reason = "ML dependencies not installed"
+            
             learned = BehaviorRankingModel(rows)
             predicted, confidence = learned.predict_mode(time_of_day)
             recommendation = learned.best_alternative(predicted, location_aqi, weather_temp)
             model = "sqlite-behavior-ranking"
+            latency_ms = round((time.perf_counter() - start_time) * 1000, 2)
 
         impact = reduction_percent(predicted, recommendation)
         return RecommendationResult(
@@ -114,4 +131,6 @@ class RecommendationEngine:
             impact_percent=impact,
             confidence=confidence,
             model=model,
+            latency_ms=latency_ms,
+            fallback_reason=fallback_reason,
         )

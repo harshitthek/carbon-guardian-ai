@@ -14,7 +14,18 @@ export function RecommendationCard({ recommendation, onAccept }) {
             <button onClick={onAccept}>Accept Challenge</button>
           </div>
         </div>
-        <a href="#simulation">See other options</a>
+        {(recommendation.model || recommendation.latency_ms !== undefined || recommendation.fallback_reason) && (
+          <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: 'var(--bg-secondary, rgba(0,0,0,0.2))', borderRadius: '8px', fontSize: '0.75rem', color: 'var(--text-secondary, #aaa)' }}>
+            {recommendation.model && <div><strong>Engine:</strong> {recommendation.model}</div>}
+            {recommendation.latency_ms !== undefined && <div><strong>Latency:</strong> {recommendation.latency_ms}ms</div>}
+            {recommendation.fallback_reason && (
+              <div style={{ color: '#ff6b6b', marginTop: '4px' }}>
+                <strong>Fallback Triggered:</strong> {recommendation.fallback_reason}
+              </div>
+            )}
+          </div>
+        )}
+        <a href="#simulation" style={{ display: 'block', marginTop: '1rem', textAlign: 'center' }}>See other options</a>
       </div>
     </div>
   );
