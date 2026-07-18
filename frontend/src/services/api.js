@@ -46,7 +46,10 @@ const mockData = {
     recommendation: "Take the metro instead to save 2.4kg of CO₂. (ex)",
     impact_percent: 63,
     confidence: 0.88,
-    type: "transport"
+    type: "transport",
+    model: "mock-fallback",
+    fallback_reason: "Backend offline or mock mode enabled",
+    latency_ms: 15
   },
   leaderboard: [
     { rank: 1, name: "Eco Innovators (ex)", score: 14500, avatar: "🌍" },
@@ -92,6 +95,32 @@ const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'; // Set to false to 
 async function request(path, options = {}) {
   options.credentials = 'include';
   
+  const getMockFallback = () => {
+    if (path.includes("/user/profile")) return mockData.profile;
+    if (path.includes("/environment/live")) return mockData.environment;
+    if (path.includes("/community/leaderboard")) return mockData.leaderboard;
+    if (path.includes("/ai/recommend")) return mockData.recommendation;
+    if (path.includes("/marketplace")) return mockData.marketplace;
+    if (path.includes("/simulation/run")) {
+      const p = JSON.parse(options.body || "{}");
+      return {
+        scenario_id: "mock_scenario",
+        description: `Mock Projection: ${p.ev||30}% EV, ${p.solar||20}% Solar, ${p.plastic||50}% Plastic (ex)`,
+        co2_reduced_kg: 2500000,
+        aqi_improvement_percent: 15,
+        temp_reduction_c: 0.5
+      };
+    }
+    return null;
+  };
+  
+  if (USE_MOCKS) {
+    await delay(300);
+    const mock = getMockFallback();
+    if (mock) return mock;
+    throw new Error(`Request failed (MOCK MODE): No mock defined for ${path}`);
+  }
+
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       headers: { "Content-Type": "application/json" },
@@ -114,25 +143,12 @@ async function request(path, options = {}) {
     if (error.message === 'Unauthorized') throw error;
     
     console.warn(`[API Fallback] Backend fetch failed for ${path}. Using mock data... Error:`, error);
-    await delay(300); // Simulate brief network delay before fallback
-
-    // Provide corresponding mock data
-    if (path.includes("/user/profile")) return mockData.profile;
-    if (path.includes("/environment/live")) return mockData.environment;
-    if (path.includes("/community/leaderboard")) return mockData.leaderboard;
-    if (path.includes("/ai/recommend")) return mockData.recommendation;
-    if (path.includes("/marketplace")) return mockData.marketplace;
-    if (path.includes("/simulation/run")) {
-      const p = JSON.parse(options.body || "{}");
-      return {
-        scenario_id: "mock_scenario",
-        description: `Mock Projection: ${p.ev||30}% EV, ${p.solar||20}% Solar, ${p.plastic||50}% Plastic (ex)`,
-        co2_reduced_kg: 2500000,
-        aqi_improvement_percent: 15,
-        temp_reduction_c: 0.5
-      };
+    
+    const mock = getMockFallback();
+    if (mock) {
+      await delay(300); // Simulate brief network delay before fallback
+      return mock;
     }
-    if (options.method === "POST") return { success: true };
     
     throw error;
   }
