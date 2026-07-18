@@ -21,7 +21,15 @@ SCENARIOS = {
     },
 }
 
+def run_simulation(ev: int, solar: int, plastic: int) -> dict:
+    co2_reduced = (ev * 93333) + (solar * 108000) + (plastic * 17000)
+    aqi_improvement = (ev * 0.6) + (solar * 0.5) + (plastic * 0.1)
+    temp_reduction = (ev * 0.02) + (solar * 0.024) + (plastic * 0.002)
 
-def run_simulation(scenario_id: str) -> dict:
-    scenario = SCENARIOS.get(scenario_id, SCENARIOS["ev_adoption_30"])
-    return {"scenario_id": scenario_id, **scenario}
+    return {
+        "scenario_id": "custom_projection",
+        "description": f"Custom Projection: {ev}% EV, {solar}% Solar, {plastic}% Plastic Recovery",
+        "co2_reduced_kg": int(co2_reduced),
+        "aqi_improvement_percent": round(aqi_improvement, 1),
+        "temp_reduction_c": round(temp_reduction, 2),
+    }
