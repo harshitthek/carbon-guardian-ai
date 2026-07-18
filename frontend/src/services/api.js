@@ -87,7 +87,7 @@ const mockData = {
 };
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8000";
-const USE_MOCKS = true; // Force mocks for SPA development to ensure reliability
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'; // Set to false to hit the real backend
 
 async function request(path, options = {}) {
   if (USE_MOCKS) {
@@ -124,8 +124,8 @@ async function request(path, options = {}) {
 export const api = {
   profile: () => request("/user/profile"),
   liveEnvironment: () => request("/environment/live?location=Delhi"),
-  leaderboard: () => request("/community/leaderboard"),
-  marketplace: () => request("/marketplace"),
+  leaderboard: () => request("/community/leaderboard").then(res => res.groups || res),
+  marketplace: () => request("/marketplace").catch(() => mockData.marketplace),
   recommend: (payload) =>
     request("/ai/recommend", {
       method: "POST",
