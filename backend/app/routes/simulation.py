@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from pydantic import BaseModel, Field
 
 from app.services.simulation import SCENARIOS, run_simulation
 
 router = APIRouter(prefix="/simulation", tags=["simulation"])
 
-from pydantic import BaseModel
-
 class SimulationParams(BaseModel):
-    ev: int
-    solar: int
-    plastic: int
+    ev: int = Field(ge=0, le=100)
+    solar: int = Field(ge=0, le=100)
+    plastic: int = Field(ge=0, le=100)
 
 @router.get("/scenarios")
 def scenarios() -> dict:
