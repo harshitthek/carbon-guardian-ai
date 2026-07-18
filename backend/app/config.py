@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     if required variables (like JWT_SECRET_KEY) are missing.
     """
     JWT_SECRET_KEY: str
-    SEED_ADMIN_PASSWORD: str = "devpassword123"
+    SEED_ADMIN_PASSWORD: str
     DATABASE_URL: str = "sqlite:///./carbon_guardian.db"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")

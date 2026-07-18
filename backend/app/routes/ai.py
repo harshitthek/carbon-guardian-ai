@@ -41,7 +41,7 @@ class FeedbackOut(BaseModel):
     retrain_signal: bool = Field(..., description="Indicates if this feedback queues model retraining")
 
 class RetrainOut(BaseModel):
-    status: str = Field(..., description="Status of the training job")
+    status: str = Field(..., description="Status of the metrics report")
     model: str = Field(..., description="Name of the model being updated")
     training_examples: int = Field(..., description="Total activity rows processed")
     positive_feedback_examples: int = Field(..., description="Total accepted recommendations processed")
@@ -81,6 +81,7 @@ def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user)
     """
     user_id = current_user.id
     points = points_for_action(payload.action_taken) if payload.accepted else 0
+    retrain_queued = False
     if payload.accepted:
         updated_count = db.query(Recommendation).filter(
             Recommendation.id == payload.recommendation_id, 
@@ -98,26 +99,26 @@ def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user)
             db.add(reward)
             current_user.green_points += points
             db.commit()
+            retrain_queued = True
         else:
             points = 0
             db.rollback()
     else:
         # Rejection path: do not reset accepted to 0, treat as no-op.
         points = 0
-    return {"accepted": payload.accepted, "points_awarded": points, "retrain_signal": payload.accepted}
+    return {"accepted": payload.accepted, "points_awarded": points, "retrain_signal": retrain_queued}
 
 
-@router.post("/retrain", response_model=RetrainOut, summary="Trigger Model Retraining")
+@router.post("/retrain", response_model=RetrainOut, summary="Get Model Retraining Metrics")
 def retrain(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """
-    Asynchronously trigger retraining of the AI recommendation engine using all historical
-    user activity and explicit feedback data.
+    Fetch the latest training metrics. (Actual asynchronous retraining is not yet implemented).
     """
     user_id = current_user.id
     accepted = db.query(Recommendation).filter(Recommendation.user_id == user_id, Recommendation.accepted == 1).count()
     history = db.query(UserActivity).filter(UserActivity.user_id == user_id).count()
     return {
-        "status": "scheduled",
+        "status": "metrics_reported",
         "model": "tensorflow-recommenders-ranking",
         "training_examples": history,
         "positive_feedback_examples": accepted,

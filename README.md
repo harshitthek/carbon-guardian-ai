@@ -19,7 +19,8 @@ graph TD
     subgraph Data Flow
         DB -->|User Activity History| AI
         AI -->|Personalized Suggestions| UI
-        UI -->|Feedback (Accept/Reject)| DB
+        UI -->|Feedback (Accept/Reject)| API
+        API -->|Record Feedback| DB
     end
 ```
 
@@ -59,6 +60,7 @@ The API (and Swagger docs) will be available at `http://127.0.0.1:8000/docs`.
 
 ### 3. Frontend (React / Vite)
 ```powershell
+cd ..
 cd frontend
 npm install
 npm run dev

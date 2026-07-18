@@ -20,8 +20,8 @@ class ActivityIn(BaseModel):
     """Payload for submitting a new user activity."""
     action: str = Field(..., description="Type of action, e.g., 'commute', 'appliance'")
     transport_mode: str = Field("none", description="Mode of transport if applicable")
-    electricity_kwh: float = Field(0, description="Electricity usage in kWh")
-    waste_kg: float = Field(0, description="Waste generated in kg")
+    electricity_kwh: float = Field(0, description="Electricity usage in kWh", ge=0)
+    waste_kg: float = Field(0, description="Waste generated in kg", ge=0)
     time_of_day: int = Field(..., description="Hour of the day (0-23)", ge=0, le=23)
     location_aqi: int = Field(..., description="Current Air Quality Index", ge=0)
     weather_temp: float = Field(..., description="Current temperature in Celsius")
