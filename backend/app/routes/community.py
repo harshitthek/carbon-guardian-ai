@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models import CommunityGroup, User
 from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/community", tags=["community"])
-
-
-from sqlalchemy.orm import Session
-from app.models import CommunityGroup, User
 
 @router.get("/leaderboard")
 def leaderboard(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> dict:
