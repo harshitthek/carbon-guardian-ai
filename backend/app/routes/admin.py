@@ -22,7 +22,10 @@ def log_audit(db: Session, admin_id: int, action: str, target_resource: str, tar
     """
     log = AdminAuditLog(admin_id=admin_id, action=action, target_resource=target_resource, target_id=target_id, details=details)
     db.add(log)
-    db.commit()
+    db.flush()
+
+class ORMBaseModel(BaseModel):
+    model_config = {"from_attributes": True}
 
 class SystemStatsOut(BaseModel):
     """Payload returning overall system statistics for the admin dashboard."""
@@ -57,7 +60,7 @@ class UserUpdateIn(BaseModel):
     persona: Optional[str] = None
     green_points: Optional[int] = None
 
-class GroupItem(BaseModel):
+class GroupItem(ORMBaseModel):
     """Detailed summary of a community group."""
     id: int
     name: str
@@ -124,9 +127,9 @@ def update_user(user_id: int, payload: UserUpdateIn, admin: User = Depends(get_c
     if payload.green_points is not None:
         user.green_points = payload.green_points
     
+    log_audit(db, admin.id, "update", "User", str(user.id), "Updated fields")
     db.commit()
     db.refresh(user)
-    log_audit(db, admin.id, "update", "User", str(user.id), "Updated fields")
     return {"id": user.id, "name": user.name, "email": user.email, "role": user.role, "level": user.level, "persona": user.persona, "green_points": user.green_points}
 
 @router.get("/groups", response_model=List[GroupItem], summary="List Groups")
@@ -144,9 +147,9 @@ def update_group(group_id: int, payload: GroupUpdateIn, admin: User = Depends(ge
     if payload.weekly_reduction_kg is not None: group.weekly_reduction_kg = payload.weekly_reduction_kg
     if payload.rank is not None: group.rank = payload.rank
     if payload.members is not None: group.members = payload.members
+    log_audit(db, admin.id, "update", "CommunityGroup", str(group.id))
     db.commit()
     db.refresh(group)
-    log_audit(db, admin.id, "update", "CommunityGroup", str(group.id))
     return group
 
 def generate_csv(logs):
@@ -166,11 +169,12 @@ def generate_csv(logs):
 @router.get("/export/emissions", summary="Export Emissions Logs")
 def export_emissions(admin: User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
     """Stream all emission logs in CSV format."""
-    logs = db.query(EmissionsLog).all()
     log_audit(db, admin.id, "export", "EmissionsLog")
+    db.commit()
+    logs = db.query(EmissionsLog).yield_per(1000)
     return StreamingResponse(generate_csv(logs), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=emissions.csv"})
 
-class AuditLogItem(BaseModel):
+class AuditLogItem(ORMBaseModel):
     """Schema for individual audit log records."""
     id: int
     admin_id: int
@@ -192,8 +196,8 @@ def purge_logs(admin: User = Depends(get_current_admin_user), db: Session = Depe
     cutoff = datetime.utcnow() - timedelta(days=30)
     del_act = db.query(UserActivity).filter(UserActivity.created_at < cutoff).delete()
     del_emi = db.query(EmissionsLog).filter(EmissionsLog.created_at < cutoff).delete()
-    db.commit()
     log_audit(db, admin.id, "delete", "Logs", details=f"Purged {del_act} activities, {del_emi} emissions")
+    db.commit()
     return {"status": "success", "purged_activities": del_act, "purged_emissions": del_emi}
 
 @router.post("/system/seed", summary="Seed Database")
@@ -205,11 +209,12 @@ def trigger_system_seed(
     success = seed_database(db)
     if success:
         log_audit(db, admin.id, "execute", "System", details="Seeded database")
+        db.commit()
         return {"status": "success", "message": "Database seeded with dummy data"}
     else:
         return {"status": "skipped", "message": "Database already contains data"}
 
-class GamificationSettingItem(BaseModel):
+class GamificationSettingItem(ORMBaseModel):
     """Payload representing a single gamification setting."""
     id: int
     action_name: str
@@ -232,10 +237,10 @@ def update_gamification_setting(setting_id: int, payload: GamificationSettingUpd
         raise HTTPException(status_code=404, detail="Setting not found")
     
     setting.points = payload.points
+    log_audit(db, admin.id, "update", "GamificationSetting", str(setting.id), f"Updated points to {payload.points}")
     db.commit()
     db.refresh(setting)
     
-    log_audit(db, admin.id, "update", "GamificationSetting", str(setting.id), f"Updated points to {payload.points}")
     return setting
 
 

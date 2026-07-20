@@ -41,9 +41,9 @@ class UserActivity(Base):
     transport_mode: Mapped[str] = mapped_column(String, nullable=True)
     electricity_kwh: Mapped[float] = mapped_column(Float, default=0.0)
     waste_kg: Mapped[float] = mapped_column(Float, default=0.0)
-    time_of_day: Mapped[int] = mapped_column(Integer, nullable=False)
-    location_aqi: Mapped[int] = mapped_column(Integer, nullable=False)
-    weather_temp: Mapped[float] = mapped_column(Float, nullable=False)
+    time_of_day: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    location_aqi: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    weather_temp: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     user = relationship("User", back_populates="activities")

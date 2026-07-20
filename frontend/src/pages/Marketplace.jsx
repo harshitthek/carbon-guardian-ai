@@ -9,7 +9,7 @@ export default function Marketplace() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    marketApi.execute();
+    marketApi.execute().catch(() => {});
   }, []);
 
   const communities = [
@@ -106,8 +106,8 @@ export default function Marketplace() {
           ) : marketApi.error ? (
             <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-card p-8 border-red-500/30 text-center flex flex-col items-center justify-center">
               <h3 className="text-red-400 font-bold mb-2 uppercase tracking-widest">Marketplace Uplink Failed</h3>
-              <p className="text-sm text-[var(--text-muted)] mb-6">{marketApi.error.message || 'Failed to sync marketplace data.'}</p>
-              <button onClick={() => marketApi.execute()} className="btn-primary">Retry Uplink</button>
+              <p className="text-sm text-[var(--text-muted)] mb-6">{marketApi.error || 'Failed to sync marketplace data.'}</p>
+              <button onClick={() => marketApi.execute().catch(() => {})} className="btn-primary">Retry Uplink</button>
             </div>
           ) : campaigns.length === 0 ? (
             <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-[var(--text-muted)] p-8">No campaigns found</div>

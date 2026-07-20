@@ -1,7 +1,6 @@
-from __future__ import annotations
-"""community.py module."""
-
 """Community router module."""
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
