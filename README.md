@@ -1,27 +1,40 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/leaf.svg" alt="Carbon Guardian" width="120" />
-  <h1>Carbon Guardian AI</h1>
-  <p><strong>Enterprise-Grade ML-Powered Sustainability Platform</strong></p>
-</div>
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/leaf.svg" alt="Carbon Guardian Logo" width="120" />
 
-<p align="center">
-  <a href="#architecture">Architecture</a> •
-  <a href="#gamification-economy">Gamification</a> •
-  <a href="#recommender-engine">AI Engine</a> •
-  <a href="#getting-started">Getting Started</a> •
-  <a href="#api-reference">API</a>
-</p>
+  <h1>🌱 Carbon Guardian AI</h1>
+
+  <p>
+    <strong>Enterprise-Grade ML-Powered Sustainability Platform</strong>
+  </p>
+
+  <p>
+    <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi" />
+    <img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+    <img alt="Vite" src="https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E" />
+    <img alt="TensorFlow" src="https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" />
+    <img alt="Python" src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  </p>
+
+  <p>
+    <a href="#-architecture">Architecture</a> •
+    <a href="#-gamification-economy">Gamification</a> •
+    <a href="#-ai-recommender-engine">AI Engine</a> •
+    <a href="#-getting-started">Getting Started</a> •
+    <a href="#-api-reference">API</a>
+  </p>
+</div>
 
 ---
 
 ## 🌍 Overview
-Carbon Guardian is a full-stack, AI-driven sustainability platform designed to gamify ecological action and dynamically optimize user behavior using machine learning. Built with a stunning Glassmorphism UI and a robust FastAPI backend, it serves as a scalable prototype for enterprise ESG (Environmental, Social, and Governance) tracking.
 
-### Key Features
-- **Intelligent Recommender Engine:** A TensorFlow-powered ML system that analyzes user logs to suggest high-impact ecological actions (e.g., Transit, Energy, Waste).
-- **Gamification Economy:** An expansive RBAC-controlled reward system where administrators can dynamically tune points and thresholds in real-time.
-- **Glassmorphism Interface:** A highly polished React frontend using Framer Motion micro-interactions, dark mode aesthetics, and contextual skeleton loaders.
-- **Enterprise Admin Suite:** Real-time metrics, interactive CSV data export, AI engine manual triggers, and full administrative audit logging.
+**Carbon Guardian** is a full-stack, AI-driven sustainability platform designed to gamify ecological action and dynamically optimize user behavior using machine learning. Built with a stunning Glassmorphism UI and a robust FastAPI backend, it serves as a scalable prototype for enterprise ESG (Environmental, Social, and Governance) tracking.
+
+### ✨ Key Features
+- 🧠 **Intelligent Recommender Engine:** A TensorFlow-powered ML system that analyzes user logs to suggest high-impact ecological actions (e.g., Transit, Energy, Waste).
+- 🕹️ **Gamification Economy:** An expansive RBAC-controlled reward system where administrators can dynamically tune points and thresholds in real-time.
+- 🔮 **Glassmorphism Interface:** A highly polished React frontend using Framer Motion micro-interactions, dark mode aesthetics, and contextual skeleton loaders.
+- 🛡️ **Enterprise Admin Suite:** Real-time metrics, interactive CSV data export, AI engine manual triggers, and full administrative audit logging.
 
 ---
 
@@ -32,23 +45,23 @@ Carbon Guardian employs a modular, decoupled architecture, separating the ML pip
 ```mermaid
 graph TD
     %% Define styles
-    classDef client fill:#1A3B1D,stroke:#39FF14,stroke-width:2px,color:#fff
-    classDef api fill:#122B14,stroke:#00E5CC,stroke-width:2px,color:#fff
-    classDef data fill:#0D1A0F,stroke:#FFD700,stroke-width:2px,color:#fff
+    classDef client fill:#1A3B1D,stroke:#39FF14,stroke-width:2px,color:#fff,rx:10,ry:10
+    classDef api fill:#122B14,stroke:#00E5CC,stroke-width:2px,color:#fff,rx:10,ry:10
+    classDef data fill:#0D1A0F,stroke:#FFD700,stroke-width:2px,color:#fff,rx:10,ry:10
     
-    subgraph Frontend [React SPA - Vite]
+    subgraph Frontend [⚛️ React SPA - Vite]
         UI[Glassmorphism UI]:::client
         Hooks[useApi & Context]:::client
         Router[React Router DOM]:::client
     end
     
-    subgraph Backend [FastAPI Server]
+    subgraph Backend [⚡ FastAPI Server]
         Auth[JWT Auth & RBAC]:::api
         Admin[Admin Audit & Settings]:::api
         Engine[TF Recommender API]:::api
     end
     
-    subgraph Storage [Database Layer]
+    subgraph Storage [🗄️ Database Layer]
         SQLite[(SQLite / Postgres)]:::data
         Models[SQLAlchemy ORM]:::data
     end
@@ -87,12 +100,12 @@ Administrators have access to the **Green Points Configuration** dashboard. They
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js (v18+)
-- Python (3.10+)
-- Git
+### 📋 Prerequisites
+- **Node.js** (v18+)
+- **Python** (3.10+)
+- **Git**
 
-### 1. Backend Setup
+### 1️⃣ Backend Setup
 
 ```bash
 cd backend
@@ -103,6 +116,7 @@ python -m venv .venv
 # Unix/Mac
 source .venv/bin/activate
 
+# Install dependencies
 pip install -r requirements.txt
 
 # Run migrations and seed the database
@@ -113,7 +127,7 @@ python scripts/seed.py
 uvicorn app.main:app --reload
 ```
 
-### 2. Frontend Setup
+### 2️⃣ Frontend Setup
 
 ```bash
 cd frontend
@@ -122,7 +136,7 @@ npm run dev
 ```
 
 The frontend will run on `http://localhost:5173`. 
-**Default Admin Credentials:** `admin@carbonguardian.ai` / `devpassword123`
+> 💡 **Default Admin Credentials:** `admin@carbonguard.com` / `devpassword123`
 
 ---
 
@@ -130,7 +144,7 @@ The frontend will run on `http://localhost:5173`.
 
 Carbon Guardian exposes a strictly typed, OpenAPI-documented REST backend. Once running, access the interactive Swagger UI at `http://localhost:8000/docs`.
 
-### Authentication
+### 🔐 Authentication
 Most endpoints expect the JWT access token in an `access_token` cookie. The login endpoint uses JSON and sets this cookie automatically, so it doesn't return a token in the body.
 ```bash
 curl -X POST "http://localhost:8000/auth/login" \
@@ -139,7 +153,7 @@ curl -X POST "http://localhost:8000/auth/login" \
      -c cookies.txt
 ```
 
-### AI Recommendation
+### 🤖 AI Recommendation
 ```bash
 curl -X POST "http://localhost:8000/ai/recommend" \
      -b cookies.txt \
@@ -147,7 +161,7 @@ curl -X POST "http://localhost:8000/ai/recommend" \
      -d '{"time_of_day": 12, "location_aqi": 100, "weather_temp": 30.5}'
 ```
 
-### Gamification Admin Tuning
+### ⚙️ Gamification Admin Tuning
 ```bash
 curl -X PUT "http://localhost:8000/admin/settings/gamification/1" \
      -b cookies.txt \
@@ -160,10 +174,11 @@ curl -X PUT "http://localhost:8000/admin/settings/gamification/1" \
 ## 🔒 Security & RBAC
 
 The application employs Role-Based Access Control (RBAC). 
-- **Standard Users:** Can access their profile, run personal simulations, and query the Recommender Engine.
-- **Administrators:** Pass through the strict `get_current_admin_user` dependency. They can access `/admin/*` routes, trigger ML retraining, modify the economy, and view the `AdminAuditLog`.
+- 👤 **Standard Users:** Can access their profile, run personal simulations, and query the Recommender Engine.
+- 👑 **Administrators:** Pass through the strict `get_current_admin_user` dependency. They can access `/admin/*` routes, trigger ML retraining, modify the economy, and view the `AdminAuditLog`.
 
 ---
+<br />
 <div align="center">
-  <p><i>Built for the Planet. Built for the Future.</i></p>
+  <p><i>Built for the Planet. Built for the Future. 🌍</i></p>
 </div>
