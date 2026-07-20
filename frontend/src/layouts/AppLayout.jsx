@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../services/api";
+import { useApi } from "../hooks/useApi";
 import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
@@ -42,8 +43,10 @@ export default function AppLayout() {
   const { user, logout, isAdmin } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const profileApi = useApi(api.profile);
+
   useEffect(() => {
-    api.profile().then(setProfile);
+    profileApi.execute();
     
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -185,15 +188,54 @@ export default function AppLayout() {
       {/* Page Content */}
       <main className="pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <Outlet context={{ profile }} />
-          </motion.div>
+          {profileApi.loading && (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center h-64"
+            >
+              <div className="flex flex-col items-center gap-4">
+                <Leaf className="text-[var(--eco-neon)] animate-pulse" size={32} />
+                <p className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">Synchronizing Guardian Data...</p>
+              </div>
+            </motion.div>
+          )}
+          
+          {profileApi.error && (
+            <motion.div
+              key="error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center h-64"
+            >
+              <div className="flex flex-col items-center gap-4 text-center max-w-md p-8 glass-card border-[var(--eco-danger)]/30">
+                <ShieldAlert className="text-[var(--eco-danger)]" size={32} />
+                <h3 className="text-xl font-bold">Connection Terminated</h3>
+                <p className="text-sm text-[var(--text-secondary)]">{profileApi.error}</p>
+                <button 
+                  onClick={() => profileApi.execute()} 
+                  className="mt-4 px-6 py-2 bg-[var(--eco-danger)]/20 text-[var(--eco-danger)] hover:bg-[var(--eco-danger)] hover:text-white rounded-full font-bold text-xs uppercase tracking-widest transition-colors"
+                >
+                  Re-Establish Uplink
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {profileApi.data && (
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Outlet context={{ profile: profileApi.data }} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </main>
 

@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Store, ArrowRight, Heart, Users, MapPin, Search, Filter, Globe, Sparkles } from "lucide-react";
 import { api } from "../services/api";
+import { useApi } from "../hooks/useApi";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Marketplace() {
-  const [campaigns, setCampaigns] = useState([]);
+  const marketApi = useApi(api.marketplace);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    api.marketplace().then(setCampaigns);
+    marketApi.execute();
   }, []);
 
   const communities = [
@@ -19,6 +20,7 @@ export default function Marketplace() {
   ];
 
   const filteredCommunities = filter === "all" ? communities : communities.filter(c => c.category === filter);
+  const campaigns = marketApi.data || [];
 
   return (
     <div className="space-y-12 pb-20">

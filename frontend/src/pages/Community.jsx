@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { Users, TrendingUp, Medal, Globe, ChevronRight, Activity } from "lucide-react";
 import { api } from "../services/api";
+import { useApi } from "../hooks/useApi";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Community() {
-  const [leaderboard, setLeaderboard] = useState([]);
+  const lbApi = useApi(api.leaderboard);
 
   useEffect(() => {
-    api.leaderboard().then(setLeaderboard);
+    lbApi.execute();
   }, []);
+
+  const leaderboard = lbApi.data || [];
 
   return (
     <div className="space-y-12 pb-20">

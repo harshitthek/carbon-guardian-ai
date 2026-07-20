@@ -1,84 +1,168 @@
-# Carbon Guardian AI 🌍🤖
+<div align="center">
+  <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/leaf.svg" alt="Carbon Guardian" width="120" />
+  <h1>Carbon Guardian AI</h1>
+  <p><strong>Enterprise-Grade ML-Powered Sustainability Platform</strong></p>
+</div>
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)
-![SQLite](https://img.shields.io/badge/SQLite-Local-003B57?logo=sqlite&logoColor=white)
+<p align="center">
+  <a href="#architecture">Architecture</a> •
+  <a href="#gamification-economy">Gamification</a> •
+  <a href="#recommender-engine">AI Engine</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#api-reference">API</a>
+</p>
 
-Carbon Guardian AI is a full-stack personalized carbon footprint reduction platform. It combines a dynamic React dashboard with a robust FastAPI backend. It features emissions calculations, reward feedback loops, community insights, footprint projections, and a deep-learning AI recommendation engine (TensorFlow Recommenders) that continuously learns from user behavior.
+---
 
-## 🏗️ Architecture
+## 🌍 Overview
+Carbon Guardian is a full-stack, AI-driven sustainability platform designed to gamify ecological action and dynamically optimize user behavior using machine learning. Built with a stunning Glassmorphism UI and a robust FastAPI backend, it serves as a scalable prototype for enterprise ESG (Environmental, Social, and Governance) tracking.
+
+### Key Features
+- **Intelligent Recommender Engine:** A TensorFlow-powered ML system that analyzes user logs to suggest high-impact ecological actions (e.g., Transit, Energy, Waste).
+- **Gamification Economy:** An expansive RBAC-controlled reward system where administrators can dynamically tune points and thresholds in real-time.
+- **Glassmorphism Interface:** A highly polished React frontend using Framer Motion micro-interactions, dark mode aesthetics, and contextual skeleton loaders.
+- **Enterprise Admin Suite:** Real-time metrics, interactive CSV data export, AI engine manual triggers, and full administrative audit logging.
+
+---
+
+## 🏗 System Architecture
+
+Carbon Guardian employs a modular, decoupled architecture, separating the ML pipelines from the core business logic.
 
 ```mermaid
 graph TD
-    UI[React Dashboard (Vite)] -->|JWT Auth, JSON| API[FastAPI Backend]
-    API --> DB[(SQLite Database)]
-    API --> AI[TensorFlow Recommenders Engine]
-    API --> AQI[WAQI & OpenWeather APIs]
+    %% Define styles
+    classDef client fill:#1A3B1D,stroke:#39FF14,stroke-width:2px,color:#fff
+    classDef api fill:#122B14,stroke:#00E5CC,stroke-width:2px,color:#fff
+    classDef data fill:#0D1A0F,stroke:#FFD700,stroke-width:2px,color:#fff
     
-    subgraph Data Flow
-        DB -->|User Activity History| AI
-        AI -->|Personalized Suggestions| UI
-        UI -->|Feedback (Accept/Reject)| API
-        API -->|Record Feedback| DB
+    subgraph Frontend [React SPA - Vite]
+        UI[Glassmorphism UI]:::client
+        Hooks[useApi & Context]:::client
+        Router[React Router DOM]:::client
     end
+    
+    subgraph Backend [FastAPI Server]
+        Auth[JWT Auth & RBAC]:::api
+        Admin[Admin Audit & Settings]:::api
+        Engine[TF Recommender API]:::api
+    end
+    
+    subgraph Storage [Database Layer]
+        SQLite[(SQLite / Postgres)]:::data
+        Models[SQLAlchemy ORM]:::data
+    end
+    
+    UI <--> Hooks
+    Hooks <--> Router
+    Router <-->|REST API| Auth
+    Router <-->|REST API| Admin
+    Router <-->|REST API| Engine
+    
+    Auth <--> Models
+    Admin <--> Models
+    Engine <--> Models
+    Models <--> SQLite
 ```
 
-## ✨ Key Features
-- **Dynamic Dashboard**: Beautiful UI utilizing `requestAnimationFrame` for gauge animations, intersection observers for scroll reveals, and responsive Shadcn UI components.
-- **Smart AI Recommendations**: The engine uses real historical data (`emissions_log`, `user_activity`) to feed a TensorFlow ranking model, returning highly contextual eco-actions.
-- **Graceful Offline Fallback**: If the backend is unavailable or an endpoint fails, the React frontend seamlessly falls back to local offline mock data—tagged explicitly with `(ex)`—so the UI never crashes.
-- **Strict Environment Validation**: Powered by `pydantic-settings`, the backend enforces that security keys (like `JWT_SECRET_KEY`) exist on startup, failing fast to prevent insecure deployments.
-- **Self-Documenting API**: Navigate to `/docs` on the backend to see a strictly typed OpenAPI specification of all routes and schemas.
+---
 
-## 🚀 Local Development Setup
+## 🧠 AI Recommender Engine
 
-### 1. Environment Configuration
-First, copy the environment template in the root directory:
+The core innovation of Carbon Guardian is its offline training pipeline and online inference engine.
+
+1. **Telemetry Ingestion:** Every user action (logging a metro ride, recycling, solar power usage) is recorded in the `UserActivity` table.
+2. **Batch Training:** The `/admin/ai/retrain` endpoint triggers a TensorFlow pipeline that ingests historical logs and fits a sequential model to predict optimal future actions for a user based on their demographics and recent history.
+3. **Dynamic Scoring:** When the inference engine predicts an action, the backend queries the `GamificationSetting` table to dynamically attach live Green Points to the recommendation.
+
+---
+
+## 🕹 Gamification Economy
+
+Carbon Guardian uses a dynamic economy rather than hardcoded point values. 
+
+Administrators have access to the **Green Points Configuration** dashboard. They can tune the point values for actions like `Transportation`, `Electricity`, and `Food`. The entire application (from the live impact trackers to the ML recommender) dynamically queries these database tables, allowing real-time economic balancing without deploying code.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- Python (3.10+)
+- Git
+
+### 1. Backend Setup
+
 ```bash
-cp .env.example .env
-```
-Ensure `JWT_SECRET_KEY` and `SEED_ADMIN_PASSWORD` are populated.
-
-### 2. Backend (FastAPI)
-```powershell
 cd backend
 python -m venv .venv
+
+# Windows
 .\.venv\Scripts\Activate.ps1
+# Unix/Mac
+source .venv/bin/activate
+
 pip install -r requirements.txt
 
-# Run database migrations
+# Run migrations and seed the database
 alembic upgrade head
-
-# Seed the database with mock users and community data
 python scripts/seed.py
 
-# Start the server
+# Start the server (runs on http://localhost:8000)
 uvicorn app.main:app --reload
 ```
-The API (and Swagger docs) will be available at `http://127.0.0.1:8000/docs`.
 
-### 3. Frontend (React / Vite)
-```powershell
-cd ..
+### 2. Frontend Setup
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
-Open `http://127.0.0.1:5173` to view the dashboard. Ensure the backend is running to avoid the `(ex)` mock fallbacks.
 
-## 📖 Core API Endpoints
-- **Authentication**: `POST /auth/login`, `POST /auth/register`, `POST /auth/logout`
-- **User Profile**: `GET /user/profile`, `GET /user/activity`, `POST /user/activity`
-- **Emissions**: `POST /emission/calculate`
-- **AI Engine**: `POST /ai/recommend`, `POST /ai/feedback`, `POST /ai/retrain`
-- **Community**: `GET /community/leaderboard`
-- **Marketplace**: `GET /marketplace`
-- **Simulations**: `GET /simulation/scenarios`, `POST /simulation/run`
+The frontend will run on `http://localhost:5173`. 
+**Default Admin Credentials:** `admin@carbonguardian.ai` / `devpassword123`
 
-## ☁️ Deployment
-- **Frontend**: Designed to be deployed seamlessly on **Vercel** or Netlify. Just set the `VITE_API_BASE` environment variable to your live backend URL.
-- **Backend**: Can be hosted on **Render**, **Railway**, or **Fly.io**. For production, swap the local SQLite URL in your `.env` with a hosted Postgres URL (e.g., Supabase) – SQLAlchemy handles the dialect seamlessly.
+---
 
-## 📄 License
-MIT License. See LICENSE.
+## 📚 API Reference
+
+Carbon Guardian exposes a strictly typed, OpenAPI-documented REST backend. Once running, access the interactive Swagger UI at `http://localhost:8000/docs`.
+
+### Authentication
+Most endpoints require a JWT Bearer token.
+```bash
+curl -X POST "http://localhost:8000/auth/login" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "username=admin@carbonguardian.ai&password=devpassword123"
+```
+
+### AI Recommendation
+```bash
+curl -X POST "http://localhost:8000/ai/recommend" \
+     -H "Authorization: Bearer <TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": 1, "prompt": "How can I improve my transport footprint?"}'
+```
+
+### Gamification Admin Tuning
+```bash
+curl -X PUT "http://localhost:8000/admin/settings/gamification/1" \
+     -H "Authorization: Bearer <ADMIN_TOKEN>" \
+     -H "Content-Type: application/json" \
+     -d '{"action_type": "Transport", "points_awarded": 15}'
+```
+
+---
+
+## 🔒 Security & RBAC
+
+The application employs Role-Based Access Control (RBAC). 
+- **Standard Users:** Can access their profile, run personal simulations, and query the Recommender Engine.
+- **Administrators:** Pass through the strict `get_current_admin_user` dependency. They can access `/admin/*` routes, trigger ML retraining, modify the economy, and view the `AdminAuditLog`.
+
+---
+<div align="center">
+  <p><i>Built for the Planet. Built for the Future.</i></p>
+</div>

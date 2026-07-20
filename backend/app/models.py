@@ -22,12 +22,13 @@ class User(Base):
     persona: Mapped[str] = mapped_column(String, default="Eco Warrior", nullable=False)
     green_points: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     location: Mapped[str] = mapped_column(String, default="Delhi", nullable=False)
+    group_id: Mapped[int | None] = mapped_column(ForeignKey("community_groups.id"), nullable=True)
 
-    activities = relationship("UserActivity", back_populates="user")
-    emissions = relationship("EmissionsLog", back_populates="user")
-    recommendations = relationship("Recommendation", back_populates="user")
-    rewards = relationship("Reward", back_populates="user")
-
+    activities = relationship("UserActivity", back_populates="user", cascade="all, delete-orphan")
+    emissions = relationship("EmissionsLog", back_populates="user", cascade="all, delete-orphan")
+    recommendations = relationship("Recommendation", back_populates="user", cascade="all, delete-orphan")
+    rewards = relationship("Reward", back_populates="user", cascade="all, delete-orphan")
+    group = relationship("CommunityGroup", back_populates="users")
 
 class UserActivity(Base):
     """Logs individual activities performed by users."""
@@ -100,3 +101,28 @@ class CommunityGroup(Base):
     weekly_reduction_kg: Mapped[float] = mapped_column(Float, nullable=False)
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
     members: Mapped[int] = mapped_column(Integer, nullable=False)
+    
+    users = relationship("User", back_populates="group")
+
+
+class AdminAuditLog(Base):
+    """Tracks administrative actions taken by users with the admin role."""
+    __tablename__ = "admin_audit_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    admin_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    action: Mapped[str] = mapped_column(String, nullable=False)
+    target_resource: Mapped[str] = mapped_column(String, nullable=False)
+    target_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    details: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    admin = relationship("User", foreign_keys=[admin_id])
+
+class GamificationSetting(Base):
+    """Configurable reward points for different actions."""
+    __tablename__ = "gamification_settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    action_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    points: Mapped[int] = mapped_column(Integer, nullable=False)

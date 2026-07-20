@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_current_admin_user
 from app.models import User, Recommendation, Reward, UserActivity
 from app.services.recommender import RecommendationEngine
 from app.services.rewards import points_for_action
@@ -80,7 +80,7 @@ def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user)
     Green Points and the underlying system registers a positive signal for future predictions.
     """
     user_id = current_user.id
-    points = points_for_action(payload.action_taken) if payload.accepted else 0
+    points = points_for_action(payload.action_taken, db) if payload.accepted else 0
     retrain_queued = False
     if payload.accepted:
         updated_count = db.query(Recommendation).filter(
@@ -110,16 +110,19 @@ def feedback(payload: FeedbackIn, current_user: User = Depends(get_current_user)
 
 
 @router.post("/retrain", response_model=RetrainOut, summary="Get Model Retraining Metrics")
-def retrain(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def retrain(admin: User = Depends(get_current_admin_user), db: Session = Depends(get_db)):
     """
-    Fetch the latest training metrics. (Actual asynchronous retraining is not yet implemented).
+    Fetch the latest training metrics across ALL users.
+    (Actual asynchronous retraining is not yet implemented).
     """
-    user_id = current_user.id
-    accepted = db.query(Recommendation).filter(Recommendation.user_id == user_id, Recommendation.accepted == 1).count()
-    history = db.query(UserActivity).filter(UserActivity.user_id == user_id).count()
+    accepted = db.query(Recommendation).filter(
+        Recommendation.accepted == 1
+    ).count()
+    history = db.query(UserActivity).count()
     return {
         "status": "metrics_reported",
         "model": "tensorflow-recommenders-ranking",
         "training_examples": history,
         "positive_feedback_examples": accepted,
     }
+

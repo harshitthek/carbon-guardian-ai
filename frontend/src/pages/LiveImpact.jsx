@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CloudSun, Wind, Droplets, ThermometerSun, Leaf, Car, Zap, Globe, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../services/api";
+import { useApi } from "../hooks/useApi";
 
 function AnimatedStat({ value, label, icon: Icon, unit, trend, color }) {
   return (
@@ -31,21 +32,14 @@ function AnimatedStat({ value, label, icon: Icon, unit, trend, color }) {
 }
 
 export default function LiveImpact() {
-  const [env, setEnv] = useState(null);
+  const envApi = useApi(api.liveEnvironment);
 
   useEffect(() => {
-    api.liveEnvironment().then(setEnv);
-    const interval = setInterval(() => {
-      setEnv(prev => prev ? ({
-        ...prev,
-        aqi: prev.aqi + (Math.random() > 0.5 ? 1 : -1),
-        co2_ppm: prev.co2_ppm + (Math.random() > 0.5 ? 0.5 : -0.5)
-      }) : null);
-    }, 3000);
-    return () => clearInterval(interval);
+    envApi.execute();
   }, []);
 
-  if (!env) return <div className="h-64 skeleton rounded-3xl"></div>;
+  if (envApi.loading || !envApi.data) return <div className="h-64 bg-[var(--eco-dark)] animate-pulse rounded-3xl border border-[var(--glass-border)]"></div>;
+  const env = envApi.data;
 
   return (
     <div className="space-y-12 pb-20">

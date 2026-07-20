@@ -3,8 +3,9 @@ import { useOutletContext, Link } from "react-router-dom";
 import { Car, Zap, Leaf, TrendingUp, Bot, MapPin, Wind, Thermometer, Flame, History, ChevronRight } from "lucide-react";
 import { api } from "../services/api";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { motion, useInView, useAnimation } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { locationService } from "../services/locationService";
+import { useApi } from "../hooks/useApi";
 
 const Counter = ({ value, suffix = "" }) => {
   const [count, setCount] = useState(0);
@@ -57,11 +58,11 @@ function StatCard({ title, value, suffix, icon: Icon, color }) {
 
 export default function Dashboard() {
   const { profile } = useOutletContext();
-  const [environment, setEnvironment] = useState(null);
+  const envApi = useApi(api.liveEnvironment);
   const [city, setCity] = useState("Detecting...");
 
   useEffect(() => {
-    api.liveEnvironment().then(setEnvironment);
+    envApi.execute();
     
     const detectCity = async () => {
       try {
@@ -75,17 +76,19 @@ export default function Dashboard() {
     detectCity();
   }, []);
 
-  if (!profile || !environment) {
+  if (!profile || envApi.loading) {
     return (
-      <div className="grid grid-cols-4 gap-4">
-        <div className="col-span-4 h-48 skeleton" />
-        <div className="col-span-1 h-32 skeleton" />
-        <div className="col-span-1 h-32 skeleton" />
-        <div className="col-span-1 h-32 skeleton" />
-        <div className="col-span-1 h-32 skeleton" />
+      <div className="grid grid-cols-4 gap-4 animate-pulse">
+        <div className="col-span-4 h-48 bg-[var(--eco-dark)] rounded-3xl border border-[var(--glass-border)]" />
+        <div className="col-span-1 h-32 bg-[var(--eco-dark)] rounded-3xl border border-[var(--glass-border)]" />
+        <div className="col-span-1 h-32 bg-[var(--eco-dark)] rounded-3xl border border-[var(--glass-border)]" />
+        <div className="col-span-1 h-32 bg-[var(--eco-dark)] rounded-3xl border border-[var(--glass-border)]" />
+        <div className="col-span-1 h-32 bg-[var(--eco-dark)] rounded-3xl border border-[var(--glass-border)]" />
       </div>
     );
   }
+
+  const environment = envApi.data || { aqi: '--', temperature_c: '--' };
 
   return (
     <div className="space-y-8 pb-20">
