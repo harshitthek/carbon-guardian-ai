@@ -88,7 +88,19 @@ export default function Dashboard() {
     );
   }
 
-  const environment = envApi.data || { aqi: '--', temperature_c: '--' };
+  if (envApi.error) {
+    return (
+      <div className="glass-card p-8 border-red-500/30 text-center flex flex-col items-center justify-center">
+        <h3 className="text-red-400 font-bold mb-2 uppercase tracking-widest">Environment Uplink Failed</h3>
+        <p className="text-sm text-[var(--text-muted)] mb-6">{envApi.error.message || 'Failed to sync environmental data.'}</p>
+        <button onClick={() => envApi.execute()} className="btn-primary">Retry Connection</button>
+      </div>
+    );
+  }
+
+  if (!envApi.data) return null;
+
+  const environment = envApi.data;
 
   return (
     <div className="space-y-8 pb-20">

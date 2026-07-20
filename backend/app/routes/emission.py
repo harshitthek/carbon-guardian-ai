@@ -18,6 +18,9 @@ class EmissionIn(BaseModel):
     distance_km: float
     electricity_kwh: float
     waste_kg: float
+    time_of_day: int | None = None
+    location_aqi: int | None = None
+    weather_temp: float | None = None
 
 
 @router.post("/calculate")
@@ -37,9 +40,9 @@ def calculate(payload: EmissionIn, current_user: User = Depends(get_current_user
         transport_mode=payload.transport_mode,
         electricity_kwh=payload.electricity_kwh,
         waste_kg=payload.waste_kg,
-        time_of_day=12,
-        location_aqi=100,
-        weather_temp=30
+        time_of_day=payload.time_of_day,
+        location_aqi=payload.location_aqi,
+        weather_temp=payload.weather_temp
     )
     db.add(activity)
     
@@ -52,9 +55,6 @@ def calculate(payload: EmissionIn, current_user: User = Depends(get_current_user
         total_kg=result["total_kg"],
     )
     db.add(log)
-    
-    # Optional: We could give points here too if we wanted!
-    # current_user.green_points += 10
     
     db.commit()
     return result

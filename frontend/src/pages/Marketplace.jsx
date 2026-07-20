@@ -101,8 +101,16 @@ export default function Marketplace() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {campaigns.length === 0 ? (
-            [1,2,3,4].map(i => <div key={i} className="h-64 skeleton rounded-2xl"></div>)
+          {marketApi.loading ? (
+            [1,2,3,4].map(i => <div key={i} className="h-64 skeleton bg-[var(--eco-dark)] rounded-2xl animate-pulse"></div>)
+          ) : marketApi.error ? (
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 glass-card p-8 border-red-500/30 text-center flex flex-col items-center justify-center">
+              <h3 className="text-red-400 font-bold mb-2 uppercase tracking-widest">Marketplace Uplink Failed</h3>
+              <p className="text-sm text-[var(--text-muted)] mb-6">{marketApi.error.message || 'Failed to sync marketplace data.'}</p>
+              <button onClick={() => marketApi.execute()} className="btn-primary">Retry Uplink</button>
+            </div>
+          ) : campaigns.length === 0 ? (
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 text-center text-[var(--text-muted)] p-8">No campaigns found</div>
           ) : (
             campaigns.map((camp, i) => (
               <motion.div

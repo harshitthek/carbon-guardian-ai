@@ -1,8 +1,10 @@
 import datetime
+import secrets
 from sqlalchemy.orm import Session
 from app.models import User, CommunityGroup, EmissionsLog, AdminAuditLog, GamificationSetting
 from app.services.auth import get_password_hash
 from app.config import settings
+from app.services.rewards import DEFAULT_ACTION_POINTS
 
 def seed_database(db: Session) -> bool:
     """Seeds the database with initial users, groups, and logs."""
@@ -30,7 +32,7 @@ def seed_database(db: Session) -> bool:
         )
         
         # Create Test User
-        test_hashed = get_password_hash("testpassword123")
+        test_hashed = get_password_hash(secrets.token_urlsafe(16))
         user1 = User(
             name="Aarav", 
             email="aarav@example.com", 
@@ -55,12 +57,8 @@ def seed_database(db: Session) -> bool:
         
         # Add default gamification settings
         gamification_settings = [
-            GamificationSetting(action_name="metro", points=50),
-            GamificationSetting(action_name="cycling", points=60),
-            GamificationSetting(action_name="walk", points=45),
-            GamificationSetting(action_name="bus", points=35),
-            GamificationSetting(action_name="led", points=30),
-            GamificationSetting(action_name="avoid_plastic", points=40),
+            GamificationSetting(action_name=action, points=pts)
+            for action, pts in DEFAULT_ACTION_POINTS.items()
         ]
         db.add_all(gamification_settings)
 

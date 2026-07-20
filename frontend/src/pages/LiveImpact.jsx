@@ -38,7 +38,15 @@ export default function LiveImpact() {
     envApi.execute();
   }, []);
 
-  if (envApi.loading || !envApi.data) return <div className="h-64 bg-[var(--eco-dark)] animate-pulse rounded-3xl border border-[var(--glass-border)]"></div>;
+  if (envApi.loading) return <div className="h-64 bg-[var(--eco-dark)] animate-pulse rounded-3xl border border-[var(--glass-border)]"></div>;
+  if (envApi.error) return (
+    <div className="glass-card p-8 border-red-500/30 text-center flex flex-col items-center justify-center h-64">
+      <h3 className="text-red-400 font-bold mb-2 uppercase tracking-widest">Sensor Uplink Failed</h3>
+      <p className="text-sm text-[var(--text-muted)] mb-6">{envApi.error.message || 'Failed to sync environmental data.'}</p>
+      <button onClick={() => envApi.execute()} className="btn-primary">Retry Uplink</button>
+    </div>
+  );
+  if (!envApi.data) return null;
   const env = envApi.data;
 
   return (

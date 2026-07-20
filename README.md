@@ -131,27 +131,28 @@ The frontend will run on `http://localhost:5173`.
 Carbon Guardian exposes a strictly typed, OpenAPI-documented REST backend. Once running, access the interactive Swagger UI at `http://localhost:8000/docs`.
 
 ### Authentication
-Most endpoints require a JWT Bearer token.
+Most endpoints expect the JWT access token in an `access_token` cookie. The login endpoint uses JSON and sets this cookie automatically, so it doesn't return a token in the body.
 ```bash
 curl -X POST "http://localhost:8000/auth/login" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=admin@carbonguardian.ai&password=devpassword123"
+     -H "Content-Type: application/json" \
+     -d '{"email": "admin@carbonguard.com", "password": "devpassword123"}' \
+     -c cookies.txt
 ```
 
 ### AI Recommendation
 ```bash
 curl -X POST "http://localhost:8000/ai/recommend" \
-     -H "Authorization: Bearer <TOKEN>" \
+     -b cookies.txt \
      -H "Content-Type: application/json" \
-     -d '{"user_id": 1, "prompt": "How can I improve my transport footprint?"}'
+     -d '{"time_of_day": 12, "location_aqi": 100, "weather_temp": 30.5}'
 ```
 
 ### Gamification Admin Tuning
 ```bash
 curl -X PUT "http://localhost:8000/admin/settings/gamification/1" \
-     -H "Authorization: Bearer <ADMIN_TOKEN>" \
+     -b cookies.txt \
      -H "Content-Type: application/json" \
-     -d '{"action_type": "Transport", "points_awarded": 15}'
+     -d '{"points": 15}'
 ```
 
 ---

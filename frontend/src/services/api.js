@@ -70,6 +70,9 @@ async function request(path, options = {}) {
       throw new Error(`Request failed: ${response.status}`);
     }
 
+    if (options.responseType === 'blob') {
+      return await response.blob();
+    }
     return await response.json();
   } catch (error) {
     if (error.message === 'Unauthorized' || error.message === 'Forbidden') throw error;
@@ -212,9 +215,7 @@ export const api = {
     seedDatabase: () => request("/admin/system/seed", { method: "POST" }),
     retrainAi: () => request("/ai/retrain", { method: "POST" }),
     exportEmissions: async () => {
-      const res = await fetch(`${API_BASE}/admin/export/emissions`, { credentials: 'include' });
-      if (!res.ok) throw new Error("Export failed");
-      const blob = await res.blob();
+      const blob = await request("/admin/export/emissions", { responseType: 'blob' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

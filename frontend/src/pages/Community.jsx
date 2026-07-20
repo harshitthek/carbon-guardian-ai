@@ -94,8 +94,16 @@ export default function Community() {
             
             <div className="flex-1 overflow-y-auto scrollbar-hide">
               <AnimatePresence>
-                {leaderboard.length === 0 ? (
+                {lbApi.loading ? (
                   <div className="p-20 text-center text-[var(--text-muted)] mono text-xs uppercase tracking-widest animate-pulse">Synchronizing rankings...</div>
+                ) : lbApi.error ? (
+                  <div className="p-20 text-center flex flex-col items-center justify-center">
+                    <h3 className="text-red-400 font-bold mb-2 uppercase tracking-widest text-xs">Leaderboard Uplink Failed</h3>
+                    <p className="text-xs text-[var(--text-muted)] mb-4">{lbApi.error.message || 'Failed to sync rankings.'}</p>
+                    <button onClick={() => lbApi.execute()} className="px-4 py-2 bg-[var(--eco-darkest)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-white hover:border-[var(--eco-neon)] rounded-xl text-xs font-bold transition-all">Retry Uplink</button>
+                  </div>
+                ) : leaderboard.length === 0 ? (
+                  <div className="p-20 text-center text-[var(--text-muted)] mono text-xs uppercase tracking-widest">No rankings available</div>
                 ) : (
                   <div className="divide-y divide-[var(--glass-border)]">
                     {leaderboard.map((team, index) => (
