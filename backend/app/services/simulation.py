@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""simulation.py module."""
 
 SCENARIOS = {
     "ev_adoption_30": {

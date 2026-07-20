@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""external.py module."""
 
 import os
 import random

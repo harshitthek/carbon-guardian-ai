@@ -1,3 +1,4 @@
+"""auth.py module."""
 from fastapi import APIRouter, HTTPException, Depends, Response
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session

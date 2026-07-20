@@ -1,3 +1,4 @@
+"""seeder.py module."""
 import datetime
 import secrets
 from sqlalchemy.orm import Session

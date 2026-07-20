@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""rewards.py module."""
 
 from sqlalchemy.orm import Session
 from app.models import GamificationSetting

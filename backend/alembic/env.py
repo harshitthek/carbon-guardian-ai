@@ -1,3 +1,4 @@
+"""env.py module."""
 import os
 from logging.config import fileConfig
 

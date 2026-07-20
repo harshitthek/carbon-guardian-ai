@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""tfrs_model.py module."""
 
 
 class CarbonTFRSModel:
@@ -10,6 +11,7 @@ class CarbonTFRSModel:
     """
 
     def __init__(self) -> None:
+        """Initialize the Sequential Model architecture."""
         import tensorflow as tf
         import tensorflow_recommenders as tfrs
 

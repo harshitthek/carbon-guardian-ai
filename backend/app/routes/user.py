@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""user.py module."""
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -27,21 +28,25 @@ class ActivityIn(BaseModel):
     weather_temp: float = Field(..., description="Current temperature in Celsius")
 
 class RewardOut(BaseModel):
+    """Schema for a single reward given to a user."""
     id: int
     source: str
     points: int
     date: datetime
 
 class FootprintBreakdown(BaseModel):
+    """Schema for breaking down the carbon footprint by category."""
     name: str
     value: float
     fill: str
 
 class WeeklyTrend(BaseModel):
+    """Schema for daily emissions trend over a week."""
     day: str
     co2: float
 
 class ProfileOut(BaseModel):
+    """Schema for a user's full profile and dashboard statistics."""
     id: int = Field(..., description="User ID")
     name: str = Field(..., description="User's full name")
     email: str = Field(..., description="User's email address")
@@ -55,6 +60,7 @@ class ProfileOut(BaseModel):
     weekly_trend: List[WeeklyTrend] = Field(..., description="Bar chart data for past 7 days of emissions")
 
 class ActivityItem(BaseModel):
+    """Schema for an individual user activity."""
     id: int
     action: str
     transport_mode: str
@@ -66,9 +72,11 @@ class ActivityItem(BaseModel):
     created_at: datetime
 
 class ActivityLogOut(BaseModel):
+    """Schema for a paginated list of user activities."""
     items: List[ActivityItem]
 
 class ActivityResponse(BaseModel):
+    """Schema for the response after logging an activity."""
     status: str
 
 

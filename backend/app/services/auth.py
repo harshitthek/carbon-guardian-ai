@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""auth.py module."""
 
 from datetime import datetime, timedelta
 from typing import Any, Union

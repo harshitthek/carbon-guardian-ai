@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""ai.py module."""
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -20,6 +21,7 @@ class RecommendIn(BaseModel):
     weather_temp: float = Field(..., description="Current temperature in Celsius")
 
 class RecommendOut(BaseModel):
+    """Schema for an AI-generated ecological recommendation."""
     id: int = Field(..., description="The unique ID of the generated recommendation")
     prediction: str = Field(..., description="Predicted behavior text")
     recommendation: str = Field(..., description="Actionable eco-friendly suggestion")
@@ -36,11 +38,13 @@ class FeedbackIn(BaseModel):
     action_taken: str = Field(..., description="The specific action category taken by the user")
 
 class FeedbackOut(BaseModel):
+    """Schema for the response after submitting feedback."""
     accepted: bool = Field(..., description="Echoes whether the feedback was positive")
     points_awarded: int = Field(..., description="Green Points granted for this action")
     retrain_signal: bool = Field(..., description="Indicates if this feedback queues model retraining")
 
 class RetrainOut(BaseModel):
+    """Schema for the response after triggering a model retrain."""
     status: str = Field(..., description="Status of the metrics report")
     model: str = Field(..., description="Name of the model being updated")
     training_examples: int = Field(..., description="Total activity rows processed")

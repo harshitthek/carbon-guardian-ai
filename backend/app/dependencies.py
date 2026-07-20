@@ -1,3 +1,4 @@
+"""dependencies.py module."""
 from fastapi import Request, HTTPException, status, Depends
 import jwt
 from sqlalchemy.orm import Session

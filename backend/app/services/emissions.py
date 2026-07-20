@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""emissions.py module."""
 
 TRANSPORT_FACTORS = {
     "cab": 0.192,

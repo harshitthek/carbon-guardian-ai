@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""recommender.py module."""
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass

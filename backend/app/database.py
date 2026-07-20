@@ -1,4 +1,5 @@
 from __future__ import annotations
+"""database.py module."""
 
 from typing import Iterator
 
@@ -20,6 +21,7 @@ engine = create_engine(DATABASE_URL, **engine_kwargs)
 if DATABASE_URL.startswith("sqlite"):
     @event.listens_for(Engine, "connect")
     def set_sqlite_pragma(dbapi_connection, connection_record):
+        """Enable foreign key constraints for SQLite connections."""
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
